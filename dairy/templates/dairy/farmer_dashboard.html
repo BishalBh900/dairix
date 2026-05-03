@@ -1,0 +1,208 @@
+﻿{% extends "dairy/base.html" %}
+
+{% block title %}My Dashboard – Dairix{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── STAT CARDS ── -->
+<div class="stats-grid">
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+      </svg>
+    </div>
+    <div class="stat-label">Total Milk</div>
+    <div class="stat-value">{{ total_milk|floatformat:1 }} L</div>
+    <div class="stat-sub">All time</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div class="stat-label">Total Revenue</div>
+    <div class="stat-value">Rs {{ total_revenue|floatformat:0 }}</div>
+    <div class="stat-sub">All time earnings</div>
+  </div>
+
+  <div class="stat-card amber">
+    <div class="stat-icon" style="background:#FFFBEB;">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--warning);">
+        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <div class="stat-label">Today's Milk</div>
+    <div class="stat-value">{{ today_milk|floatformat:1 }} L</div>
+    <div class="stat-sub">Today</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+    </div>
+    <div class="stat-label">This Week</div>
+    <div class="stat-value">{{ week_milk|floatformat:1 }} L</div>
+    <div class="stat-sub">Last 7 days</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <div class="stat-label">This Month</div>
+    <div class="stat-value">{{ month_milk|floatformat:1 }} L</div>
+    <div class="stat-sub">Current month</div>
+  </div>
+
+</div>
+
+<!-- ── CHART + RECENT ── -->
+<div class="grid-2 section-gap">
+
+  <!-- Chart -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📈 Last 7 Days – Milk (L)</span>
+    </div>
+    <canvas id="milkChart" height="120"></canvas>
+  </div>
+
+  <!-- Farmer Info -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">👨‍🌾 My Profile</span>
+    </div>
+    <table>
+      <tbody>
+        <tr><td style="color:#6B7280;font-size:12px;width:40%">NAME</td><td><strong>{{ farmer.name }}</strong></td></tr>
+        <tr><td style="color:#6B7280;font-size:12px;">PHONE</td><td>{{ farmer.phone }}</td></tr>
+        <tr><td style="color:#6B7280;font-size:12px;">ADDRESS</td><td>{{ farmer.address }}</td></tr>
+        <tr><td style="color:#6B7280;font-size:12px;">GMAIL</td><td>{{ farmer.gmail }}</td></tr>
+        <tr><td style="color:#6B7280;font-size:12px;">USERNAME</td><td>{{ request.user.username }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ── RECENT MILK COLLECTIONS ── -->
+<div class="card section-gap">
+  <div class="card-header">
+    <span class="card-title">🥛 Recent Milk Collections</span>
+    <a href="{% url 'milk' %}" class="btn btn-outline" style="font-size:12px;">View All</a>
+  </div>
+  {% if recent %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Session</th>
+          <th>Quantity (L)</th>
+          <th>Fat</th>
+          <th>SNF</th>
+          <th>Rate</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent %}
+        <tr>
+          <td>{{ r.date }}</td>
+          <td>
+            {% if r.session == 'morning' %}
+              <span class="badge badge-morning">Morning</span>
+            {% else %}
+              <span class="badge badge-evening">Evening</span>
+            {% endif %}
+          </td>
+          <td>{{ r.quantity }}</td>
+          <td>{{ r.fat }}</td>
+          <td>{{ r.snf }}</td>
+          <td>Rs {{ r.rate|floatformat:2 }}</td>
+          <td><strong>Rs {{ r.total_amount|floatformat:2 }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+      <p>No milk collections yet.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ── RECENT BILLS ── -->
+{% if bills %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">🧾 Recent Bills</span>
+    <a href="{% url 'billing' %}" class="btn btn-outline" style="font-size:12px;">View All</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Date</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bills %}
+        <tr>
+          <td>{{ b.inv_no }}</td>
+          <td>{{ b.inv_date }}</td>
+          <td><strong>Rs {{ b.total|floatformat:2 }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ctx = document.getElementById('milkChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{ labels|safe }},
+    datasets: [{
+      label: 'Milk (L)',
+      data: {{ chart_data|safe }},
+      backgroundColor: 'rgba(22,163,74,0.15)',
+      borderColor: '#16A34A',
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#F3F4F6' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}
+

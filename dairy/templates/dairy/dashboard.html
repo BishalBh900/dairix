@@ -1,0 +1,155 @@
+﻿
+{% extends "dairy/base.html" %}
+{% load static %}
+{% block title %}Dashboard — DairyMS{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="{% static 'dairy/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Stat Cards ── -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    </div>
+    <div class="stat-label">Total Farmers</div>
+    <div class="stat-value">{{ total_farmers }}</div>
+    <div class="stat-sub">Registered suppliers</div>
+  </div>
+
+  <div class="stat-card green">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+      </svg>
+    </div>
+    <div class="stat-label">Today's Milk</div>
+    <div class="stat-value">{{ today_milk|floatformat:1 }} L</div>
+    <div class="session-split">
+      <div class="session-pill">🌅 Morning <span>{{ morning_milk|floatformat:1 }}L</span></div>
+      <div class="session-pill">🌆 Evening <span>{{ evening_milk|floatformat:1 }}L</span></div>
+    </div>
+  </div>
+
+  <div class="stat-card amber">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+      </svg>
+    </div>
+    <div class="stat-label">Last 3 Days Milk</div>
+    <div class="stat-value">{{ last_3_days_milk|floatformat:1 }} L</div>
+    <div class="stat-sub">Past 3 days collected</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div class="stat-label">Total Sales Revenue</div>
+    <div class="stat-value">Rs.{{ total_sales|floatformat:0 }}</div>
+    <div class="stat-sub">From saved bills</div>
+  </div>
+</div>
+
+<!-- ── Quality Averages ── -->
+<div class="quality-row">
+  <div class="quality-card">
+    <div class="q-label">Avg Fat % — today</div>
+    <div class="q-value">{{ avg_fat }}</div>
+    <div class="q-sub">fat content</div>
+  </div>
+  <div class="quality-card">
+    <div class="q-label">Avg SNF % — today</div>
+    <div class="q-value">{{ avg_snf }}</div>
+    <div class="q-sub">solids-not-fat</div>
+  </div>
+</div>
+
+<!-- ── Chart + Top Farmers ── -->
+<div class="two-col">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Milk Collection — Last 7 Days</div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="milkChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Top Farmers</div>
+    </div>
+    <div class="top-farmers">
+      {% for f in top_farmers %}
+      <div class="farmer-row">
+        <div style="display:flex;align-items:center;">
+          <div class="farmer-rank">{{ forloop.counter }}</div>
+          {{ f.name }}
+        </div>
+        <span class="farmer-milk">{{ f.milk|floatformat:1 }} L</span>
+      </div>
+      {% empty %}
+      <p style="font-size:13px;color:#9C8B72;padding:.5rem 0;">No data yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Recent Collections ── -->
+<div class="card" style="margin-top:1rem;">
+  <div class="card-header">
+    <div class="card-title">Recent Collections</div>
+  </div>
+  <table class="recent-table">
+    <thead>
+      <tr>
+        <th>Farmer</th>
+        <th>Date</th>
+        <th>Session</th>
+        <th>Qty (L)</th>
+        <th>Fat %</th>
+        <th>SNF %</th>
+        <th>Amount (Rs.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in recent %}
+      <tr>
+        <td>{{ r.farmer.name }}</td>
+        <td>{{ r.date }}</td>
+        <td>
+          <span class="session-badge {% if r.session == 'Morning' %}morning{% else %}evening{% endif %}">
+            {{ r.session }}
+          </span>
+        </td>
+        <td>{{ r.quantity|floatformat:1 }}</td>
+        <td>{{ r.fat }}</td>
+        <td>{{ r.snf }}</td>
+        <td>Rs.{{ r.total_amount|floatformat:0 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="color:#9C8B72;padding:.75rem .5rem;">No collections yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{{ labels|json_script:"chart-labels" }}
+{{ data|json_script:"chart-data" }}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'dairy/js/dashboard.js' %}"></script>
+{% endblock %}

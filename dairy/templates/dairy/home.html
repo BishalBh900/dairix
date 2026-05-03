@@ -1,0 +1,47 @@
+﻿{% extends "dairy/base.html" %}
+{% block title %}Home — DairyMS{% endblock %}
+{% block page_title %}Home{% endblock %}
+{% block content %}
+
+<div style="max-width:680px;">
+  <div style="margin-bottom:28px;">
+    <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--text);">
+      Good Day, {{ request.user.username }} 👋
+    </h2>
+    <p style="color:var(--text-3);margin-top:6px;font-size:14px;">Here's a quick overview of your dairy operations.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <a href="{% url 'milk' %}" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(139,105,20,.15)'" onmouseout="this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:12px;">🥛</div>
+        <div style="font-weight:600;font-size:15px;color:var(--text);">Record Milk</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px;">Log morning or evening collection</div>
+      </div>
+    </a>
+    <a href="{% url 'farmers' %}" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(139,105,20,.15)'" onmouseout="this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:12px;">👨‍🌾</div>
+        <div style="font-weight:600;font-size:15px;color:var(--text);">Manage Farmers</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px;">View and add registered farmers</div>
+      </div>
+    </a>
+    <a href="{% url 'reports' %}" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(139,105,20,.15)'" onmouseout="this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:12px;">📊</div>
+        <div style="font-weight:600;font-size:15px;color:var(--text);">View Reports</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px;">Analytics and daily summaries</div>
+      </div>
+    </a>
+    <a href="{% url 'billing' %}" style="text-decoration:none;">
+      <div class="card" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(20, 46, 139, 0.15)'" onmouseout="this.style.boxShadow=''">
+        <div style="font-size:28px;margin-bottom:12px;">💳</div>
+        <div style="font-weight:600;font-size:15px;color:var(--text);">Billing</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px;">Generate farmer payment bills</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% endblock %}
+

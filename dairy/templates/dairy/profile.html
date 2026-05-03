@@ -1,0 +1,434 @@
+{% extends "dairy/base.html" %}
+{% block title %}Profile — DairyMS{% endblock %}
+{% block page_title %}Profile{% endblock %}
+
+{% block extra_head %}
+<style>
+  .profile-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* ── PROFILE HERO CARD ── */
+  .profile-hero {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px 32px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--primary);
+  }
+
+  /* ── AVATAR ── */
+  .profile-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+    display: block;
+  }
+
+  .profile-avatar-initial {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 32px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--primary-soft);
+  }
+
+  .avatar-upload-btn {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #fff;
+    transition: background .15s;
+  }
+
+  .avatar-upload-btn:hover { background: var(--primary-hover); }
+  .avatar-upload-btn svg { width: 12px; height: 12px; }
+
+  /* ── HERO INFO ── */
+  .profile-hero-info { flex: 1; }
+
+  .profile-hero-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .profile-hero-role {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 10px;
+  }
+
+  .profile-hero-role.admin  { background: #FEF9C3; color: #854D0E; }
+  .profile-hero-role.staff  { background: #DBEAFE; color: #1E40AF; }
+  .profile-hero-role.farmer { background: #DCFCE7; color: #166534; }
+
+  .profile-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .profile-hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* ── DETAIL CARDS ── */
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .profile-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+  }
+
+  .profile-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+
+  .profile-field:last-child { margin-bottom: 0; }
+
+  .profile-field-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text-muted);
+  }
+
+  .profile-field-value {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .profile-field-value.empty {
+    color: #9CA3AF;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* ── UPLOAD TOAST ── */
+  .upload-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all .25s;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  .upload-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 600px) {
+    .profile-hero { flex-direction: column; text-align: center; }
+    .profile-hero-meta { justify-content: center; }
+    .profile-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% with role=request.user.profile.role %}
+<div class="profile-wrapper">
+
+  <!-- ── HERO ── -->
+  <div class="profile-hero">
+    <div class="profile-avatar-wrap">
+
+      {% if role == 'farmer' and farmer and farmer.photo %}
+        <img src="{{ farmer.photo }}" alt="{{ request.user.username }}" class="profile-avatar" id="avatarImg">
+      {% elif role != 'farmer' and request.user.profile.photo %}
+        <img src="{{ request.user.profile.photo }}" alt="{{ request.user.username }}" class="profile-avatar" id="avatarImg">
+      {% else %}
+        <div class="profile-avatar-initial" id="avatarInitial">
+          {{ request.user.username|first|upper }}
+        </div>
+      {% endif %}
+
+      {% if role == 'farmer' and farmer %}
+      <label class="avatar-upload-btn" title="Change photo">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <input type="file" accept="image/*" style="display:none;" id="avatarInput"
+               onchange="handleAvatarUpload(this)">
+      </label>
+      {% endif %}
+
+    </div>
+
+    <div class="profile-hero-info">
+      <div class="profile-hero-name">
+        {% if role == 'farmer' and farmer %}
+          {{ farmer.name }}
+        {% else %}
+          {{ request.user.get_full_name|default:request.user.username }}
+        {% endif %}
+      </div>
+      <div class="profile-hero-role {{ role }}">{{ role }}</div>
+      <div class="profile-hero-meta">
+        <span>
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          {{ request.user.username }}
+        </span>
+        {% if request.user.email %}
+        <span>
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          {{ request.user.email }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DETAIL GRID ── -->
+  <div class="profile-grid">
+
+    <!-- Account Info -->
+    <div class="profile-card">
+      <div class="profile-card-title">Account Info</div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Username</div>
+        <div class="profile-field-value">{{ request.user.username }}</div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Email</div>
+        <div class="profile-field-value">
+          {{ request.user.email|default:"—" }}
+        </div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Role</div>
+        <div class="profile-field-value">{{ role|capfirst }}</div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Member Since</div>
+        <div class="profile-field-value">{{ request.user.date_joined|date:"N j, Y" }}</div>
+      </div>
+    </div>
+
+    <!-- Farmer Info (farmer only) / Staff Info (admin/staff) -->
+    {% if role == 'farmer' and farmer %}
+    <div class="profile-card">
+      <div class="profile-card-title">Farmer Details</div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Full Name</div>
+        <div class="profile-field-value">{{ farmer.name }}</div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Phone</div>
+        <div class="profile-field-value">{{ farmer.phone }}</div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Gmail</div>
+        <div class="profile-field-value">{{ farmer.gmail }}</div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Address</div>
+        <div class="profile-field-value">
+          {% if farmer.address %}{{ farmer.address }}{% else %}<span class="empty">Not set</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="profile-card">
+      <div class="profile-card-title">Staff Details</div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Full Name</div>
+        <div class="profile-field-value">
+          {% if request.user.get_full_name %}
+            {{ request.user.get_full_name }}
+          {% else %}
+            <span class="empty">Not set</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Last Login</div>
+        <div class="profile-field-value">{{ request.user.last_login|date:"N j, Y — g:i A"|default:"—" }}</div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Status</div>
+        <div class="profile-field-value" style="color: var(--success);">● Active</div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /profile-grid -->
+
+</div><!-- /profile-wrapper -->
+
+<!-- Toast notification -->
+<div class="upload-toast" id="uploadToast">✓ Photo updated!</div>
+
+{% endwith %}
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  let val = null;
+  document.cookie.split(';').forEach(c => {
+    c = c.trim();
+    if (c.startsWith(name + '=')) val = decodeURIComponent(c.slice(name.length + 1));
+  });
+  return val;
+}
+
+function showToast(msg, success = true) {
+  const t = document.getElementById('uploadToast');
+  t.textContent = msg;
+  t.style.background = success ? 'var(--primary)' : '#DC2626';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image.', false); return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Image must be under 2MB.', false); return;
+  }
+
+  const farmerId = {{ farmer.id|default:"null" }};
+  if (!farmerId) return;
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = reader.result;
+    try {
+      const res = await fetch(`/farmers/${farmerId}/photo/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ photo: base64 }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // Update avatar in page instantly
+        const wrap = document.querySelector('.profile-avatar-wrap');
+        let img = document.getElementById('avatarImg');
+        if (img) {
+          img.src = base64;
+        } else {
+          const initial = document.getElementById('avatarInitial');
+          img = document.createElement('img');
+          img.id = 'avatarImg';
+          img.className = 'profile-avatar';
+          img.src = base64;
+          img.alt = 'Profile photo';
+          initial.replaceWith(img);
+        }
+        showToast('✓ Photo updated!');
+      } else {
+        showToast('Upload failed: ' + data.error, false);
+      }
+    } catch (err) {
+      showToast('Something went wrong.', false);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+{% endblock %}

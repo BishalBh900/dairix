@@ -1,0 +1,264 @@
+﻿{% extends "dairy/base.html" %}
+{% load static %}
+{% block title %}Milk Collection — DairyMS{% endblock %}
+{% block page_title %}Milk Collection{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'dairy/css/milk.css' %}">
+{% endblock %}
+
+{% block content %}
+{% with role=request.user.profile.role %}
+
+{% if role == 'admin' or role == 'staff' %}
+<div class="grid-2 section-gap" style="align-items:start;">
+
+  <!-- ── ADD FORM ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Record Milk Entry</div>
+    </div>
+
+    <form id="milkForm" data-active-session="{{ active_session }}">
+      {% csrf_token %}
+
+      <!-- STEP 1: Date -->
+      <div style="margin-bottom:4px;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-3);text-transform:uppercase;">
+        Step 1 — Date
+      </div>
+      <div class="form-group" style="margin-bottom:8px;">
+        <input type="hidden" name="date" id="date" />
+        <div id="datePicker" style="display:flex;gap:8px;align-items:center;">
+          <input type="date" id="dateInput" style="flex:1;" onchange="onDateChange()" />
+        </div>
+        <div id="dateLocked" class="lock-badge date-locked">
+          <span id="dateLockedLabel"></span>
+          <button type="button" class="unlock-btn" onclick="unlockDate()" title="Change date">🔓</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Session -->
+      <div id="sessionStep" class="form-disabled">
+        <div style="margin-bottom:4px;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-3);text-transform:uppercase;">
+          Step 2 — Session
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <input type="hidden" name="session" id="session" />
+          <div id="sessionPicker" style="display:flex;gap:6px;">
+            <button type="button" id="btnMorning" class="session-btn" onclick="pickSession('Morning')">🌅 Morning</button>
+            <button type="button" id="btnEvening" class="session-btn" onclick="pickSession('Evening')">🌙 Evening</button>
+          </div>
+          <div id="sessionLocked" class="lock-badge">
+            <span id="sessionLockedLabel"></span>
+            <button type="button" class="unlock-btn" onclick="unlockSession()" title="Change session">🔓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lock Both Button -->
+      <div id="lockBothRow" style="margin-bottom:14px;display:none;">
+        <button type="button" onclick="lockBoth()" class="btn btn-primary"
+          style="width:100%;justify-content:center;">
+          🔒 Lock Date &amp; Session — Start Entry
+        </button>
+      </div>
+
+      <!-- Status bar -->
+      <div id="sessionStatus" style="
+        margin-bottom:12px; padding:8px 12px; border-radius:6px;
+        font-size:12px; background:var(--cream); border:1px solid var(--border);
+        color:var(--text-3); display:none;">
+      </div>
+
+      <!-- STEP 3: Entry Fields -->
+      <div id="entryFields" class="form-disabled">
+        <div style="margin-bottom:8px;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text-3);text-transform:uppercase;">
+          Step 3 — Farmer Entry
+        </div>
+
+        <div class="form-group">
+          <label>Farmer</label>
+          <select name="farmer_id" id="farmer_id" required>
+            <option value="">— Select Farmer —</option>
+            {% for farmer in farmers %}
+            <option value="{{ farmer.id }}">{{ farmer.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="milk-form-grid">
+          <div class="form-group">
+            <label>Quantity (Litres)</label>
+            <input type="number" name="quantity" id="quantity" step="0.01" min="0" required oninput="calcRate()" />
+          </div>
+          <div class="form-group">
+            <label>Fat %</label>
+            <input type="number" name="fat" id="fat" step="0.01" min="0" max="10" required oninput="calcRate()" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>SNF %</label>
+          <input type="number" name="snf" id="snf" step="0.01" min="0" max="15" required oninput="calcRate()" />
+        </div>
+
+        <div class="form-group">
+          <label>Allowances (Rs.)</label>
+          <input type="number" name="allowances" id="allowances" step="0.01" value="0" oninput="calcRate()" />
+        </div>
+
+        <div class="rate-preview">
+          <div>
+            <div class="label">Rate / Litre</div>
+            <div class="value" id="rateOut">Rs.0.00</div>
+          </div>
+          <div style="text-align:center;">
+            <div class="label">Total Amount</div>
+            <div class="value" id="totalOut">Rs.0.00</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success"
+          style="width:100%;margin-top:16px;justify-content:center;">
+          Save Entry
+        </button>
+      </div>
+
+      <div id="formMsg" style="margin-top:10px;font-size:13px;"></div>
+    </form>
+  </div>
+
+  <!-- ── SESSION ENTRIES PANEL ── -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title" id="panelTitle">
+          {{ active_session }} — {{ today_date|date:"d M Y" }}
+        </div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">
+          Entries for this date &amp; session
+        </div>
+      </div>
+      <span id="entryCount" style="font-size:12px;color:var(--text-3);">
+        {{ session_records|length }} entr{{ session_records|length|pluralize:"y,ies" }}
+      </span>
+    </div>
+
+    <div id="sessionTableWrap">
+      {% if session_records %}
+      <div class="session-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Farmer</th>
+              <th>Qty (L)</th>
+              <th>Fat</th>
+              <th>SNF</th>
+              <th>Rate</th>
+              <th style="text-align:right;">Total</th>
+            </tr>
+          </thead>
+          <tbody id="sessionTbody">
+            {% for r in session_records %}
+            <tr>
+              <td style="font-weight:500;">{{ r.farmer.name }}</td>
+              <td>{{ r.quantity|floatformat:1 }}</td>
+              <td>{{ r.fat|floatformat:2 }}</td>
+              <td>{{ r.snf|floatformat:2 }}</td>
+              <td>Rs.{{ r.rate|floatformat:2 }}</td>
+              <td style="text-align:right;font-weight:600;">Rs.{{ r.total_amount|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5">Total</td>
+              <td style="text-align:right;"><span id="footerTotal">
+                Rs.{% with tot=0 %}{% for r in session_records %}{{ r.total_amount|floatformat:2 }}{% endfor %}{% endwith %}
+              </span></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state" id="emptyState">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="48" height="48">
+          <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+        </svg>
+        <p>No entries yet for this session.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% else %}
+{# ─── FARMER: Full filterable history ─── #}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">My Milk Records</div>
+    <button onclick="window.print()" class="btn btn-outline" style="margin-left:auto;">🖨️ Print</button>
+  </div>
+
+  <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;">
+    <select name="period" onchange="toggleCustom(this.value)" style="min-width:140px;">
+      <option value="">All Time</option>
+      <option value="week"   {% if active_period == 'week'   %}selected{% endif %}>This Week</option>
+      <option value="month"  {% if active_period == 'month'  %}selected{% endif %}>This Month</option>
+      <option value="custom" {% if active_period == 'custom' %}selected{% endif %}>Custom Range</option>
+    </select>
+    <div id="customRange" style="display:{% if active_period == 'custom' %}flex{% else %}none{% endif %};gap:8px;align-items:center;">
+      <input type="date" name="from_date" value="{{ from_date }}" />
+      <span>to</span>
+      <input type="date" name="to_date" value="{{ to_date }}" />
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {% if active_period %}<a href="?" class="btn btn-outline">Clear</a>{% endif %}
+  </form>
+
+  {% if records %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Session</th><th>Qty (L)</th>
+          <th>Fat %</th><th>SNF %</th><th>Rate / L</th><th>Total (Rs.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.date }}</td>
+          <td>
+            <span class="badge {% if record.session == 'Morning' %}badge-morning{% else %}badge-evening{% endif %}">
+              {{ record.session }}
+            </span>
+          </td>
+          <td>{{ record.quantity|floatformat:1 }}</td>
+          <td>{{ record.fat|floatformat:2 }}</td>
+          <td>{{ record.snf|floatformat:2 }}</td>
+          <td>Rs.{{ record.rate|floatformat:2 }}</td>
+          <td style="font-weight:600;">Rs.{{ record.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+    </svg>
+    <p>No records found for the selected period.</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endwith %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'dairy/js/milk.js' %}"></script>
+{% endblock %}

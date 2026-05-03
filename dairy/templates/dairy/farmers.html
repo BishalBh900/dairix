@@ -1,0 +1,172 @@
+﻿{% extends "dairy/base.html" %}
+{% block title %}Farmers — DairyMS{% endblock %}
+{% block page_title %}Farmers{% endblock %}
+
+{% block content %}
+
+{% with role=request.user.profile.role %}
+
+{% if role == 'admin' or role == 'staff' %}
+<div class="card-header" style="margin-bottom: 20px;">
+  <div></div>
+  <a href="{% url 'add_farmer' %}" class="btn btn-primary">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+    Add Farmer
+  </a>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">All Farmers</div>
+    <span style="font-size:13px;color:var(--text-3);">{{ farmers|length }} total</span>
+  </div>
+
+  {% if farmers %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Address</th>
+          {% if role == 'admin' or role == 'staff' %}
+          <th>Action</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for farmer in farmers %}
+        <tr>
+          <td style="color:var(--text-3); font-size:12px;">{{ forloop.counter }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+
+              <!-- PHOTO AVATAR -->
+              {% if farmer.photo %}
+                <img src="{{ farmer.photo }}" alt="{{ farmer.name }}"
+                     style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border);">
+              {% else %}
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--cream-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--brown);">
+                  {{ farmer.name|first|upper }}
+                </div>
+              {% endif %}
+
+              <span style="font-weight:500;">{{ farmer.name }}</span>
+
+              <!-- UPLOAD BUTTON (admin/staff only) -->
+              {% if role == 'admin' or role == 'staff' %}
+              <label title="Upload photo" style="cursor:pointer;color:var(--text-3);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                <input type="file" accept="image/*" style="display:none;"
+                       onchange="uploadPhoto(this, {{ farmer.id }})">
+              </label>
+              {% endif %}
+
+            </div>
+          </td>
+          <td>{{ farmer.phone }}</td>
+          <td style="color:var(--text-2);">{{ farmer.gmail }}</td>
+          <td style="color:var(--text-2);">{{ farmer.address }}</td>
+          {% if role == 'admin' or role == 'staff' %}
+          <td>
+            <a href="{% url 'delete_farmer' farmer.id %}"
+               onclick="return confirm('Delete {{ farmer.name }}?')"
+               class="btn btn-danger" style="padding:5px 10px;font-size:12px;">
+              Delete
+            </a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    {% if role == 'admin' or role == 'staff' %}
+      <p>No farmers registered yet. <a href="{% url 'add_farmer' %}" style="color:var(--brown);">Add the first one →</a></p>
+    {% else %}
+      <p>No farmers registered yet.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endwith %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    document.cookie.split(';').forEach(cookie => {
+      const c = cookie.trim();
+      if (c.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(c.substring(name.length + 1));
+      }
+    });
+  }
+  return cookieValue;
+}
+
+function uploadPhoto(input, farmerId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('Please select a valid image.');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Image must be under 2MB.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = reader.result;
+
+    try {
+      const res = await fetch(`/farmers/${farmerId}/photo/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ photo: base64 }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // Update avatar immediately without page reload
+        const row = input.closest('tr');
+        const avatar = row.querySelector('img, div[style*="border-radius:50%"]');
+        if (avatar.tagName === 'IMG') {
+          avatar.src = base64;
+        } else {
+          const img = document.createElement('img');
+          img.src = base64;
+          img.style = 'width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border);';
+          avatar.replaceWith(img);
+        }
+      } else {
+        alert('Upload failed: ' + data.error);
+      }
+    } catch (err) {
+      alert('Something went wrong. Please try again.');
+    }
+  };
+
+  reader.readAsDataURL(file);
+}
+</script>
+{% endblock %}

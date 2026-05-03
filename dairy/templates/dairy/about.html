@@ -1,0 +1,334 @@
+﻿{% extends "dairy/base.html" %}
+
+{% block title %}About — DairyMS{% endblock %}
+{% block page_title %}About{% endblock %}
+
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap');
+
+  .about-wrap {
+    max-width: 700px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+  }
+
+  /* ── Hero ── */
+  .about-hero {
+    background: linear-gradient(135deg, #1a4731 0%, #2d6a4f 60%, #40916c 100%);
+    border-radius: 18px;
+    padding: 44px 32px 36px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .about-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .about-hero-logo {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .about-hero-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .about-hero-name-np {
+    font-size: 17px;
+    font-weight: 600;
+    opacity: 0.88;
+    margin-bottom: 6px;
+  }
+  .about-hero-location {
+    font-size: 13px;
+    opacity: 0.75;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .about-hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+  }
+
+  /* ── Cards ── */
+  .about-card {
+    background: #fffdfa;
+    border-radius: 14px;
+    border: 1.5px solid #ede8e0;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .about-card-header {
+    padding: 14px 22px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #2d6a4f;
+    border-bottom: 1.3px solid #ede8e0;
+    background: #f7f3ee;
+  }
+
+  /* ── Info grid ── */
+  .about-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #ede8e0;
+  }
+  .about-info-cell {
+    background: #fffdfa;
+    padding: 14px 20px;
+  }
+  .about-info-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a09880;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .about-info-value {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #2d2e32;
+  }
+  .about-info-value a {
+    color: #2d6a4f;
+    text-decoration: none;
+  }
+  .about-info-value a:hover { text-decoration: underline; }
+
+  /* ── Contact row ── */
+  .about-contact-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    border-bottom: 1px solid #f0ebe4;
+    font-size: 14px;
+    color: #2d2e32;
+  }
+  .about-contact-row:last-child { border-bottom: none; }
+  .about-contact-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .about-contact-icon.green  { background: #d1fae5; }
+  .about-contact-icon.amber  { background: #fef3c7; }
+  .about-contact-icon.blue   { background: #dbeafe; }
+  .about-contact-icon.purple { background: #ede9fe; }
+  .about-contact-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #a09880;
+    font-weight: 700;
+  }
+  .about-contact-val { font-weight: 600; }
+
+  /* ── Features ── */
+  .about-features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .about-features-list li {
+    padding: 10px 20px;
+    border-bottom: 1px solid #f0ebe4;
+    font-size: 14px;
+    color: #2d2e32;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .about-features-list li:last-child { border-bottom: none; }
+  .feat-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: #d1fae5;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── DairyMS credit ── */
+  .about-credit {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 0;
+  }
+  .about-credit-logo {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+  .about-credit-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .about-credit-sub {
+    font-size: 12.5px;
+    opacity: 0.6;
+    margin-bottom: 14px;
+  }
+  .about-credit-badges {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .credit-badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 13px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+  }
+
+  @media (max-width: 600px) {
+    .about-info-grid { grid-template-columns: 1fr; }
+    .about-hero { padding: 32px 18px 28px; }
+    .about-hero-name { font-size: 17px; }
+  }
+</style>
+
+<div class="about-wrap">
+
+  <!-- ── Hero ── -->
+  <div class="about-hero">
+    <div class="about-hero-logo">🥛</div>
+    <div class="about-hero-name-np">पद्म कञ्चन कृषि सहकारी संस्था लि.</div>
+    <div class="about-hero-name">Padam Kanchan Agriculture Co-operative Organization Ltd.</div>
+    <div class="about-hero-location">
+      📍 भरतपुर महानगरपालिका–२२, पदमपोखरी, चितवन
+    </div>
+    <span class="about-hero-badge">Established 2065 B.S.</span>
+  </div>
+
+  <!-- ── Registration Info ── -->
+  <div class="about-card">
+    <div class="about-card-header">📋 Registration Details</div>
+    <div class="about-info-grid">
+      <div class="about-info-cell">
+        <div class="about-info-label">Registration No.</div>
+        <div class="about-info-value">०८२/०८३/०६९</div>
+      </div>
+      <div class="about-info-cell">
+        <div class="about-info-label">PAN No.</div>
+        <div class="about-info-value">६००८७७७३४</div>
+      </div>
+      <div class="about-info-cell">
+        <div class="about-info-label">Established</div>
+        <div class="about-info-value">2065 B.S.</div>
+      </div>
+      <div class="about-info-cell">
+        <div class="about-info-label">Type</div>
+        <div class="about-info-value">Agriculture Co-operative</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Contact ── -->
+  <div class="about-card">
+    <div class="about-card-header">📞 Contact Information</div>
+
+    <div class="about-contact-row">
+      <div class="about-contact-icon green">📍</div>
+      <div>
+        <div class="about-contact-label">Address</div>
+        <div class="about-contact-val">भरतपुर–२२, पदमपोखरी, चितवन, नेपाल</div>
+      </div>
+    </div>
+
+    <div class="about-contact-row">
+      <div class="about-contact-icon amber">📞</div>
+      <div>
+        <div class="about-contact-label">Phone</div>
+        <div class="about-contact-val">
+          <a href="tel:98********">98********</a> &nbsp;/&nbsp;
+          <a href="tel:977*********">977*********</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-contact-row">
+      <div class="about-contact-icon blue">✉️</div>
+      <div>
+        <div class="about-contact-label">Email</div>
+        <div class="about-contact-val">
+          <a href="mailto:padamkanchan@gmail.com">padamkanchan@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-contact-row">
+      <div class="about-contact-icon purple">🌐</div>
+      <div>
+        <div class="about-contact-label">Website</div>
+        <div class="about-contact-val">
+          <a href="https://www.padamkanchan.com.np" target="_blank">www.padamkanchan.com.np</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Features ── -->
+  <div class="about-card">
+    <div class="about-card-header">🌿 Our Services & Qualities</div>
+    <ul class="about-features-list">
+      <li><div class="feat-icon">🥛</div> Fresh milk collection from registered farmers — Morning &amp; Evening</li>
+      <li><div class="feat-icon">⚖️</div> Transparent quality testing — Fat &amp; SNF based pricing</li>
+      <li><div class="feat-icon">👨‍🌾</div> Supporting local farmers with fair &amp; timely payments</li>
+      <li><div class="feat-icon">📊</div> Automated billing, records, and financial reporting</li>
+      <li><div class="feat-icon">🤝</div> Community-driven cooperative model serving Chitwan since 2065 B.S.</li>
+      <li><div class="feat-icon">🏆</div> Committed to quality, hygiene, and transparency in every transaction</li>
+    </ul>
+  </div>
+
+  <!-- ── DairyMS Credit ── -->
+  <div class="about-credit">
+    <div class="about-credit-logo">💻</div>
+    <div class="about-credit-title">Powered by DairyMS</div>
+    <div class="about-credit-sub">Smart Dairy Management System — Built for Nepal's Cooperatives</div>
+    <div class="about-credit-badges">
+      <span class="credit-badge">🐍 Django 5.0</span>
+      <span class="credit-badge">🗄️ MySQL</span>
+      <span class="credit-badge">📱 Responsive</span>
+      <span class="credit-badge">🔒 Role-Based Access</span>
+      <span class="credit-badge">🇳🇵 Made for Nepal</span>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

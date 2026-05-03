@@ -1,0 +1,36 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Access Denied – Dairix</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #F9FAFB; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .brand-main { font-size: 26px; font-weight: 600; color: #e53935; }
+    .brand-sub  { font-size: 12px; color: #6B7280; margin-top: 2px; margin-bottom: 32px; }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h2 { font-size: 22px; font-weight: 600; margin-bottom: 12px; }
+    .email-box { background: #FEF2F2; border: 1px solid #f5c6c2; border-radius: 8px; padding: 10px 16px; font-size: 14px; color: #DC2626; margin: 16px 0; word-break: break-all; }
+    p { font-size: 14px; color: #6B7280; margin-bottom: 24px; line-height: 1.6; }
+    .btn { display: inline-block; padding: 10px 24px; background: #16A34A; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; }
+    .btn:hover { background: #15803D; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand-main">Dairix</div>
+    <div class="brand-sub">Dairy Management System</div>
+    <div class="icon">⚠️</div>
+    <h2>Access Denied</h2>
+    {% if request.session.failed_google_email %}
+      <div class="email-box">{{ request.session.failed_google_email }}</div>
+    {% endif %}
+    <p>This Google account is not registered as a farmer. Please contact the dairy admin to get access.</p>
+    <a href="/" class="btn">← Go to Home</a>
+  </div>
+</body>
+</html>
+
