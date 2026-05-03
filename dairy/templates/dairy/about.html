@@ -1,23 +1,24 @@
 ﻿{% extends "dairy/base.html" %}
+{% load static %}
 
 {% block title %}About — DairyMS{% endblock %}
 {% block page_title %}About{% endblock %}
 
-{% block content %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'dairy/css/about.css' %}">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap');
 
   .about-wrap {
-    max-width: 700px;
+    max-width: 680px;
     margin: 0 auto;
-    padding-bottom: 40px;
+    padding-bottom: 48px;
   }
 
-  /* ── Hero ── */
   .about-hero {
-    background: linear-gradient(135deg, #1a4731 0%, #2d6a4f 60%, #40916c 100%);
-    border-radius: 18px;
-    padding: 44px 32px 36px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1a4731 100%);
+    border-radius: 20px;
+    padding: 48px 32px 40px;
     text-align: center;
     color: #fff;
     margin-bottom: 20px;
@@ -28,307 +29,181 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     pointer-events: none;
   }
-  .about-hero-logo {
-    font-size: 56px;
-    line-height: 1;
-    margin-bottom: 12px;
-  }
+  .about-hero-logo { font-size: 52px; line-height: 1; margin-bottom: 14px; }
   .about-hero-name {
     font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    margin-bottom: 4px;
-    line-height: 1.4;
+    font-size: 32px; font-weight: 700;
+    letter-spacing: 0.5px; margin-bottom: 6px;
   }
-  .about-hero-name-np {
-    font-size: 17px;
-    font-weight: 600;
-    opacity: 0.88;
-    margin-bottom: 6px;
-  }
-  .about-hero-location {
-    font-size: 13px;
-    opacity: 0.75;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-  }
+  .about-hero-tagline { font-size: 14px; opacity: 0.7; margin-bottom: 20px; }
+  .about-hero-badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
   .about-hero-badge {
     display: inline-block;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
     padding: 4px 14px;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.4px;
+    font-size: 12px; font-weight: 500;
   }
 
-  /* ── Cards ── */
   .about-card {
-    background: #fffdfa;
+    background: #fff;
     border-radius: 14px;
-    border: 1.5px solid #ede8e0;
+    border: 1.5px solid #e5e7eb;
     margin-bottom: 16px;
     overflow: hidden;
   }
   .about-card-header {
-    padding: 14px 22px 10px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #2d6a4f;
-    border-bottom: 1.3px solid #ede8e0;
-    background: #f7f3ee;
+    padding: 13px 22px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: #16a34a;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
   }
 
-  /* ── Info grid ── */
-  .about-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: #ede8e0;
-  }
-  .about-info-cell {
-    background: #fffdfa;
-    padding: 14px 20px;
-  }
-  .about-info-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #a09880;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .about-info-value {
-    font-size: 14.5px;
-    font-weight: 600;
-    color: #2d2e32;
-  }
-  .about-info-value a {
-    color: #2d6a4f;
-    text-decoration: none;
-  }
-  .about-info-value a:hover { text-decoration: underline; }
-
-  /* ── Contact row ── */
-  .about-contact-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 20px;
-    border-bottom: 1px solid #f0ebe4;
-    font-size: 14px;
-    color: #2d2e32;
-  }
-  .about-contact-row:last-child { border-bottom: none; }
-  .about-contact-icon {
-    width: 34px; height: 34px;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-  .about-contact-icon.green  { background: #d1fae5; }
-  .about-contact-icon.amber  { background: #fef3c7; }
-  .about-contact-icon.blue   { background: #dbeafe; }
-  .about-contact-icon.purple { background: #ede9fe; }
-  .about-contact-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #a09880;
-    font-weight: 700;
-  }
-  .about-contact-val { font-weight: 600; }
-
-  /* ── Features ── */
-  .about-features-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+  .about-features-list { list-style: none; padding: 0; margin: 0; }
   .about-features-list li {
-    padding: 10px 20px;
-    border-bottom: 1px solid #f0ebe4;
-    font-size: 14px;
-    color: #2d2e32;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px; color: #374151;
+    display: flex; align-items: center; gap: 12px;
+    line-height: 1.5;
   }
   .about-features-list li:last-child { border-bottom: none; }
   .feat-icon {
-    width: 28px; height: 28px;
-    border-radius: 6px;
-    background: #d1fae5;
+    width: 30px; height: 30px;
+    border-radius: 7px; background: #dcfce7;
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
+    font-size: 15px; flex-shrink: 0;
   }
 
-  /* ── DairyMS credit ── */
+  .about-tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px; background: #e5e7eb;
+  }
+  .about-tech-cell { background: #fff; padding: 16px 18px; text-align: center; }
+  .about-tech-icon { font-size: 22px; margin-bottom: 6px; }
+  .about-tech-name { font-size: 12px; font-weight: 600; color: #111827; }
+  .about-tech-desc { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
   .about-credit {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    border-radius: 14px;
-    padding: 28px 24px;
-    text-align: center;
-    color: #fff;
-    margin-bottom: 0;
+    border-radius: 14px; padding: 30px 24px;
+    text-align: center; color: #fff;
   }
-  .about-credit-logo {
-    font-size: 32px;
-    margin-bottom: 8px;
+  .about-credit-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin: 0 auto 12px;
+    border: 2px solid rgba(255,255,255,0.15);
   }
-  .about-credit-title {
+  .about-credit-name {
     font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 4px;
+    font-size: 18px; font-weight: 700; margin-bottom: 3px;
   }
-  .about-credit-sub {
-    font-size: 12.5px;
-    opacity: 0.6;
-    margin-bottom: 14px;
+  .about-credit-role { font-size: 12px; opacity: 0.55; margin-bottom: 16px; }
+  .about-credit-links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .credit-link {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 20px; padding: 5px 14px;
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none; transition: background 0.15s;
   }
-  .about-credit-badges {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .credit-badge {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 4px 13px;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.85);
-  }
+  .credit-link:hover { background: rgba(255,255,255,0.16); color: #fff; }
 
   @media (max-width: 600px) {
-    .about-info-grid { grid-template-columns: 1fr; }
-    .about-hero { padding: 32px 18px 28px; }
-    .about-hero-name { font-size: 17px; }
+    .about-hero { padding: 34px 18px 30px; }
+    .about-hero-name { font-size: 26px; }
   }
 </style>
+{% endblock %}
 
+{% block content %}
 <div class="about-wrap">
 
   <!-- ── Hero ── -->
   <div class="about-hero">
-    <div class="about-hero-logo">🥛</div>
-    <div class="about-hero-name-np">पद्म कञ्चन कृषि सहकारी संस्था लि.</div>
-    <div class="about-hero-name">Padam Kanchan Agriculture Co-operative Organization Ltd.</div>
-    <div class="about-hero-location">
-      📍 भरतपुर महानगरपालिका–२२, पदमपोखरी, चितवन
-    </div>
-    <span class="about-hero-badge">Established 2065 B.S.</span>
-  </div>
-
-  <!-- ── Registration Info ── -->
-  <div class="about-card">
-    <div class="about-card-header">📋 Registration Details</div>
-    <div class="about-info-grid">
-      <div class="about-info-cell">
-        <div class="about-info-label">Registration No.</div>
-        <div class="about-info-value">०८२/०८३/०६९</div>
-      </div>
-      <div class="about-info-cell">
-        <div class="about-info-label">PAN No.</div>
-        <div class="about-info-value">६००८७७७३४</div>
-      </div>
-      <div class="about-info-cell">
-        <div class="about-info-label">Established</div>
-        <div class="about-info-value">2065 B.S.</div>
-      </div>
-      <div class="about-info-cell">
-        <div class="about-info-label">Type</div>
-        <div class="about-info-value">Agriculture Co-operative</div>
-      </div>
+    <div class="about-hero-logo">🐄</div>
+    <div class="about-hero-name">Dairix</div>
+    <div class="about-hero-tagline">Smart Dairy Management System — Built for Nepal's Cooperatives</div>
+    <div class="about-hero-badges">
+      <span class="about-hero-badge">v1.0</span>
+      <span class="about-hero-badge">🇳🇵 Made in Nepal</span>
+      <span class="about-hero-badge">Open Source</span>
     </div>
   </div>
 
-  <!-- ── Contact ── -->
+  <!-- ── What is Dairix ── -->
   <div class="about-card">
-    <div class="about-card-header">📞 Contact Information</div>
-
-    <div class="about-contact-row">
-      <div class="about-contact-icon green">📍</div>
-      <div>
-        <div class="about-contact-label">Address</div>
-        <div class="about-contact-val">भरतपुर–२२, पदमपोखरी, चितवन, नेपाल</div>
-      </div>
-    </div>
-
-    <div class="about-contact-row">
-      <div class="about-contact-icon amber">📞</div>
-      <div>
-        <div class="about-contact-label">Phone</div>
-        <div class="about-contact-val">
-          <a href="tel:98********">98********</a> &nbsp;/&nbsp;
-          <a href="tel:977*********">977*********</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="about-contact-row">
-      <div class="about-contact-icon blue">✉️</div>
-      <div>
-        <div class="about-contact-label">Email</div>
-        <div class="about-contact-val">
-          <a href="mailto:padamkanchan@gmail.com">padamkanchan@gmail.com</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="about-contact-row">
-      <div class="about-contact-icon purple">🌐</div>
-      <div>
-        <div class="about-contact-label">Website</div>
-        <div class="about-contact-val">
-          <a href="https://www.padamkanchan.com.np" target="_blank">www.padamkanchan.com.np</a>
-        </div>
-      </div>
+    <div class="about-card-header">💡 What is Dairix?</div>
+    <div style="padding: 18px 22px; font-size: 14px; color: #374151; line-height: 1.8;">
+      <strong style="color:#111827;">Dairix</strong> is a full-featured dairy management platform designed
+      to simplify and digitise daily operations for milk collection centers and co-operatives.
+      From farmer onboarding to automated billing and financial reports — everything is in one place,
+      accessible from any device.
     </div>
   </div>
 
   <!-- ── Features ── -->
   <div class="about-card">
-    <div class="about-card-header">🌿 Our Services & Qualities</div>
+    <div class="about-card-header">🌿 Key Features</div>
     <ul class="about-features-list">
-      <li><div class="feat-icon">🥛</div> Fresh milk collection from registered farmers — Morning &amp; Evening</li>
-      <li><div class="feat-icon">⚖️</div> Transparent quality testing — Fat &amp; SNF based pricing</li>
-      <li><div class="feat-icon">👨‍🌾</div> Supporting local farmers with fair &amp; timely payments</li>
-      <li><div class="feat-icon">📊</div> Automated billing, records, and financial reporting</li>
-      <li><div class="feat-icon">🤝</div> Community-driven cooperative model serving Chitwan since 2065 B.S.</li>
-      <li><div class="feat-icon">🏆</div> Committed to quality, hygiene, and transparency in every transaction</li>
+      <li><div class="feat-icon">🥛</div> Morning &amp; evening milk collection with fat and SNF tracking</li>
+      <li><div class="feat-icon">👨‍🌾</div> Farmer management with individual profiles and ledgers</li>
+      <li><div class="feat-icon">🧾</div> Automated billing and payment records</li>
+      <li><div class="feat-icon">📊</div> Analytics, reports, and daily breakdowns</li>
+      <li><div class="feat-icon">🛒</div> Purchase register for tracking cooperative expenses</li>
+      <li><div class="feat-icon">📢</div> Notice board with role-based visibility</li>
+      <li><div class="feat-icon">🔒</div> Role-based access — Admin, Staff, and Farmer views</li>
+      <li><div class="feat-icon">📱</div> Fully responsive — works on mobile, tablet, and desktop</li>
     </ul>
   </div>
 
-  <!-- ── DairyMS Credit ── -->
+  <!-- ── Tech Stack ── -->
+  <div class="about-card">
+    <div class="about-card-header">⚙️ Built With</div>
+    <div class="about-tech-grid">
+      <div class="about-tech-cell">
+        <div class="about-tech-icon">🐍</div>
+        <div class="about-tech-name">Django 5</div>
+        <div class="about-tech-desc">Backend framework</div>
+      </div>
+      <div class="about-tech-cell">
+        <div class="about-tech-icon">🗄️</div>
+        <div class="about-tech-name">MySQL</div>
+        <div class="about-tech-desc">Database</div>
+      </div>
+      <div class="about-tech-cell">
+        <div class="about-tech-icon">🎨</div>
+        <div class="about-tech-name">Vanilla CSS</div>
+        <div class="about-tech-desc">No frameworks</div>
+      </div>
+      <div class="about-tech-cell">
+        <div class="about-tech-icon">⚡</div>
+        <div class="about-tech-name">Vanilla JS</div>
+        <div class="about-tech-desc">No dependencies</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Developer ── -->
   <div class="about-credit">
-    <div class="about-credit-logo">💻</div>
-    <div class="about-credit-title">Powered by DairyMS</div>
-    <div class="about-credit-sub">Smart Dairy Management System — Built for Nepal's Cooperatives</div>
-    <div class="about-credit-badges">
-      <span class="credit-badge">🐍 Django 5.0</span>
-      <span class="credit-badge">🗄️ MySQL</span>
-      <span class="credit-badge">📱 Responsive</span>
-      <span class="credit-badge">🔒 Role-Based Access</span>
-      <span class="credit-badge">🇳🇵 Made for Nepal</span>
+    <div class="about-credit-avatar">👨‍💻</div>
+    <div class="about-credit-name">Bishal Bh900</div>
+    <div class="about-credit-role">Designer &amp; Developer · Dairix</div>
+    <div class="about-credit-links">
+      <a href="https://github.com/BishalBh900/dairix" target="_blank" class="credit-link">⭐ GitHub</a>
+      <a href="mailto:bishal@example.com" class="credit-link">✉️ Contact</a>
     </div>
   </div>
 
 </div>
 {% endblock %}
-

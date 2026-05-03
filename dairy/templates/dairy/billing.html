@@ -3,289 +3,27 @@
 
 {% block title %}Billing — DairyMS{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/billing.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600&display=swap');
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  #toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: #2e7d32; color: #fff; padding: 10px 22px; border-radius: 6px;
-    font-size: 13px; font-weight: 600; z-index: 999; opacity: 0;
-    transition: opacity .3s; pointer-events: none;
-  }
-  #toast.show { opacity: 1; }
-
-  .modal-bg {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.45); z-index: 100;
-    align-items: center; justify-content: center;
-  }
-  .modal-bg.open { display: flex; }
-  .modal-box {
-    background: #fff; border-radius: 10px; padding: 28px 32px;
-    max-width: 520px; width: 94%; max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 8px 32px rgba(0,0,0,.18);
-  }
-  .modal-box h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: #111; }
-  .modal-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
-  .modal-row .lbl { color: #888; } .modal-row .val { font-weight: 600; color: #111; }
-  .modal-items { margin-top: 12px; }
-  .modal-items table { width: 100%; font-size: 12px; border-collapse: collapse; }
-  .modal-items th { background: #f5f5f5; padding: 6px 8px; text-align: left; font-weight: 600; border: 1px solid #ddd; }
-  .modal-items td { padding: 6px 8px; border: 1px solid #ddd; }
-  .modal-items td:last-child { text-align: right; }
-  .modal-total { font-weight: 700; color: #c8692a; font-size: 14px; margin-top: 10px; text-align: right; }
-  .modal-close { margin-top: 16px; width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #bbb; background: #f5f5f5; cursor: pointer; font-size: 13px; font-family: inherit; }
-  .modal-close:hover { background: #eee; }
-
-  .page-layout { display: flex; align-items: stretch; min-height: 80vh; }
-  .left-col { flex: 1; min-width: 0; padding: 0 20px 60px 0; overflow-y: auto; }
-
-  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .toolbar button {
-    padding: 7px 16px; font-size: 13px; border-radius: 6px; cursor: pointer;
-    border: 1px solid #bbb; background: #fff; color: #333; font-family: inherit; transition: background .15s;
-  }
-  .toolbar button:hover { background: #f0f0f0; }
-  .btn-orange { background: #c8692a !important; border-color: #c8692a !important; color: #fff !important; }
-  .btn-orange:hover { background: #a8541f !important; }
-  .btn-green  { background: #2e7d32 !important; border-color: #2e7d32 !important; color: #fff !important; }
-  .btn-green:hover { background: #1b5e20 !important; }
-
-  .picker-panel, .cust-selector-panel {
-    background: #fff; border: 1px solid #ddd; border-radius: 8px;
-    padding: 16px 20px; margin-bottom: 16px;
-  }
-  .picker-title {
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: #888; margin-bottom: 14px;
-  }
-  .cust-selector-title {
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: #888; margin-bottom: 12px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .cust-selector-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .cust-selector-row select {
-    flex: 1; min-width: 180px; padding: 8px 10px; border: 1px solid #ccc;
-    border-radius: 6px; font-size: 13px; font-family: inherit;
-    background: #fafafa; color: #111; outline: none; cursor: pointer;
-  }
-  .cust-selector-row select:focus { border-color: #c8692a; }
-  .cust-selector-row button {
-    padding: 7px 14px; font-size: 12px; border-radius: 6px; cursor: pointer;
-    font-family: inherit; border: 1px solid #bbb; background: #fff; color: #333;
-  }
-  .cust-selector-row button:hover { background: #f0f0f0; }
-  .cust-mode-badge { font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 10px; }
-  .cust-mode-badge.registered { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-  .cust-mode-badge.walk-in    { background: #fff3e0; color: #c8692a; border: 1px solid #ffcc80; }
-
-  /* ── Product grid & cards ── */
-  .product-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-  .product-card {
-    border: 1.5px solid #e0e0e0; border-radius: 10px; padding: 12px 14px 10px;
-    background: #fafafa; min-width: 112px; text-align: center;
-    transition: border-color .15s, background .15s; flex: 0 0 auto;
-  }
-  .product-card.added { border-color: #c8692a; background: #fff8f3; }
-  .product-icon  { font-size: 26px; margin-bottom: 4px; }
-  .product-name  { font-size: 13px; font-weight: 700; color: #222; }
-  .product-nepali {
-    font-size: 12px; color: #c8692a; font-weight: 600; margin-top: 1px;
-    font-family: 'Noto Sans Devanagari', sans-serif;
-  }
-  .product-rate  { font-size: 11px; color: #c8692a; margin-top: 4px; font-weight: 600; }
-  .product-unit  { font-size: 11px; color: #999; }
-  .qty-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 8px 0 6px; }
-  .qty-row button {
-    width: 24px; height: 24px; border: 1px solid #bbb; background: #fff;
-    border-radius: 4px; font-size: 15px; line-height: 1; cursor: pointer; padding: 0; color: #333;
-  }
-  .qty-row button:hover { background: #eee; }
-  .qty-row input {
-    width: 44px; text-align: center; border: 1px solid #bbb;
-    border-radius: 4px; font-size: 13px; padding: 3px 4px; outline: none;
-  }
-  .qty-row input:focus { border-color: #c8692a; }
-  .add-btn {
-    width: 100%; padding: 5px 0; font-size: 11px; font-weight: 700; border-radius: 5px;
-    cursor: pointer; border: 1.5px solid #c8692a; background: #c8692a; color: #fff; transition: background .15s;
-  }
-  .add-btn:hover { background: #a8541f; border-color: #a8541f; }
-  .add-btn.update-btn { background: #fff; color: #c8692a; }
-  .add-btn.update-btn:hover { background: #fff5ef; }
-
-  /* ── Category labels ── */
-  .category-section { width: 100%; }
-  .category-label {
-    font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: #666; margin: 14px 0 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .category-label:first-child { margin-top: 0; }
-  .category-label-nepali {
-    font-size: 12px; font-weight: 600; color: #c8692a;
-    letter-spacing: 0; text-transform: none;
-    font-family: 'Noto Sans Devanagari', sans-serif;
-  }
-  .category-divider { border: none; border-top: 1px solid #eee; margin: 14px 0 10px; }
-
-  /* ── Invoice ── */
-  .inv-wrap {
-    background: #fff; border: 1px solid #ccc; padding: 36px 44px 40px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.08);
-  }
-  .inv-badge {
-    border: 2px solid #c8692a; display: block; text-align: center;
-    padding: 5px 18px; font-size: 13px; font-weight: 700; color: #c8692a;
-    letter-spacing: .5px; margin: 0 auto 10px; width: fit-content;
-  }
-  .inv-company { font-size: 24px; font-weight: 700; text-align: center; color: #111; margin-bottom: 4px; }
-  .inv-address  { font-size: 13px; text-align: center; color: #555; margin-bottom: 24px; }
-  .inv-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-  .inv-field { display: flex; align-items: flex-end; gap: 8px; font-size: 13px; }
-  .inv-field input, .cust-row input {
-    border: none; border-bottom: 1px solid #888; background: transparent;
-    font-size: 13px; color: #111; font-family: inherit; outline: none; padding: 2px 4px;
-  }
-  .inv-field input:focus, .cust-row input:focus { border-bottom-color: #c8692a; }
-  .reg-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; }
-  .reg-row label { white-space: nowrap; font-weight: 600; }
-  .reg-static { font-weight: 700; color: #333; letter-spacing: .5px; border-bottom: 1px solid #555; padding: 2px 4px; }
-  .cust-row { display: flex; align-items: flex-end; gap: 8px; font-size: 13px; margin-bottom: 8px; }
-  .cust-row label { white-space: nowrap; }
-  .cust-row input { flex: 1; }
-  .cust-row input[readonly] { color: #555; cursor: default; background: #fafafa; }
-  .cust-id-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; color: #888; }
-  .cust-id-row .cid-val {
-    font-weight: 700; color: #1565c0; border: 1px solid #bbdefb;
-    border-radius: 4px; padding: 1px 7px; background: #e3f2fd;
-  }
-
-  table.inv-table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13px; }
-  .inv-table th, .inv-table td { border: 1px solid #333; padding: 8px 10px; color: #111; }
-  .inv-table thead th { text-align: center; font-weight: 700; font-size: 13px; background: #f9f9f9; }
-  .col-sn{width:48px;} .col-qty{width:72px;} .col-rate{width:80px;} .col-rs{width:90px;} .col-ps{width:50px;}
-  .inv-table tbody td.col-sn, .inv-table tbody td.col-qty,
-  .inv-table tbody td.col-rate, .inv-table tbody td.col-rs,
-  .inv-table tbody td.col-ps { text-align: right; }
-  .inv-table tbody td input {
-    border: none; background: transparent; font-size: 13px;
-    font-family: inherit; outline: none; color: #111; width: 100%; text-align: inherit; padding: 0;
-  }
-  .inv-table tbody td input:focus { background: #fff8f4; }
-  .total-row td { font-weight: 700; }
-  .total-row td.spacer { border: none; border-bottom: 1px solid #333; }
-  .total-label { text-align: center !important; color: #c8692a; border-color: #c8692a !important; }
-  .total-rs    { text-align: right  !important; color: #c8692a; border-color: #c8692a !important; }
-  .total-ps    { border-color: #c8692a !important; }
-  .btn-rm { background: none; border: none; cursor: pointer; color: #c00; font-size: 17px; padding: 0 4px; line-height: 1; }
-  .empty-row td { text-align: center; color: #bbb; padding: 22px !important; font-style: italic; border: 1px solid #ddd; }
-  .words-box { border: 1px solid #333; padding: 8px 12px; font-size: 13px; margin-top: 12px; min-height: 34px; }
-  .auth { text-align: right; margin-top: 40px; font-size: 13px; color: #444; }
-  .auth span { display: inline-block; border-top: 1px solid #333; padding-top: 6px; min-width: 160px; }
-
-  /* ── History panel ── */
-  .history-panel {
-    width: 300px; min-width: 300px; flex-shrink: 0; background: #fff;
-    border-left: 1px solid #ddd; padding: 16px; position: sticky; top: 0;
-    height: 100vh; max-height: 100vh; overflow-y: auto; align-self: flex-start;
-  }
-  .history-panel h3 {
-    font-size: 13px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: #888; margin-bottom: 12px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .history-panel h3 span { font-size: 11px; background: #c8692a; color: #fff; border-radius: 10px; padding: 1px 7px; }
-  .hist-item {
-    border: 1px solid #eee; border-radius: 6px; padding: 10px 12px;
-    margin-bottom: 8px; transition: border-color .15s; font-size: 12px;
-  }
-  .hist-item:hover { border-color: #c8692a; background: #fff8f3; }
-  .hist-item .hi-invno  { font-weight: 700; color: #111; font-size: 13px; }
-  .hist-item .hi-farmer { font-size: 11px; color: #2e7d32; font-weight: 600; margin-top: 1px; }
-  .hist-item .hi-name   { color: #555; margin-top: 2px; }
-  .hist-item .hi-total  { color: #c8692a; font-weight: 700; margin-top: 3px; }
-  .hist-item .hi-date   { color: #aaa; font-size: 11px; margin-top: 2px; }
-  .hist-item .hi-actions { display: flex; gap: 6px; margin-top: 8px; }
-  .hist-item .hi-actions button {
-    flex: 1; font-size: 11px; padding: 4px 0; border-radius: 4px;
-    cursor: pointer; border: 1px solid #bbb; background: #f9f9f9; font-family: inherit; color: #333;
-  }
-  .hist-item .hi-actions button:hover { background: #eee; }
-  .hist-item .hi-actions .del-btn { border-color: #f88; color: #c00; }
-  .hist-item .hi-actions .del-btn:hover { background: #fff0f0; }
-  .hist-empty { font-size: 13px; color: #bbb; text-align: center; padding: 20px 0; font-style: italic; }
-
-  /* ── Farmer bill view ── */
-  .farmer-bill-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
-  }
-  .farmer-bill-header h2 { font-size: 18px; font-weight: 700; color: #111; }
-  .farmer-bill-header .print-btn {
-    padding: 8px 18px; background: #2e7d32; color: #fff; border: none;
-    border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
-  }
-  .farmer-bill-header .print-btn:hover { background: #1b5e20; }
-  .bill-cards { display: flex; flex-direction: column; gap: 16px; }
-  .bill-card {
-    background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
-    padding: 20px 24px; box-shadow: 0 1px 6px rgba(0,0,0,.05);
-  }
-  .bill-card-top {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
-  }
-  .bill-inv-no   { font-size: 15px; font-weight: 700; color: #111; }
-  .bill-inv-date { font-size: 12px; color: #888; margin-top: 2px; }
-  .bill-total-badge {
-    font-size: 15px; font-weight: 700; color: #c8692a;
-    background: #fff8f3; border: 1px solid #f0c8a0;
-    border-radius: 7px; padding: 4px 14px;
-  }
-  .bill-meta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; margin-bottom: 12px; }
-  .bill-meta span { color: #555; }
-  .bill-meta strong { color: #111; }
-  .bill-items-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-  .bill-items-table th {
-    background: #f5f5f5; padding: 7px 10px; text-align: left;
-    font-weight: 600; border: 1px solid #e0e0e0; color: #555;
-  }
-  .bill-items-table td { padding: 7px 10px; border: 1px solid #e0e0e0; color: #111; }
-  .bill-items-table td:nth-child(3),
-  .bill-items-table td:nth-child(4),
-  .bill-items-table td:nth-child(5) { text-align: right; }
-  .bill-items-table th:nth-child(3),
-  .bill-items-table th:nth-child(4),
-  .bill-items-table th:nth-child(5) { text-align: right; }
-  .bill-items-table tfoot td { font-weight: 700; color: #c8692a; background: #fff8f3; }
-  .bill-card-actions { margin-top: 14px; display: flex; gap: 8px; }
-  .bill-card-actions button {
-    padding: 6px 14px; font-size: 12px; border-radius: 6px; cursor: pointer;
-    border: 1px solid #bbb; background: #f5f5f5; font-family: inherit; color: #333;
-  }
-  .bill-card-actions button:hover { background: #eee; }
-  .no-bills { text-align: center; padding: 60px 20px; color: #aaa; font-size: 15px; }
-  .no-bills svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: .3; }
-
-  /* ── Print ── */
-  @media print {
-    .toolbar, .picker-panel, .cust-selector-panel, .history-panel,
-    #toast, .modal-bg, .farmer-bill-header .print-btn,
-    .bill-card-actions { display: none !important; }
-    .page-layout { display: block; }
-    .inv-wrap { box-shadow: none; border: none; padding: 20px; }
-    .btn-rm { display: none !important; }
-    .bill-card { page-break-inside: avoid; border: 1px solid #ccc; }
-  }
-</style>
+{# ── Config block: passes Django context to billing.js cleanly ── #}
+<div id="billingConfig"
+  data-csrf="{{ csrf_token }}"
+  data-save-url="{% url 'save_bill' %}"
+  data-list-url="{% url 'get_bills' %}"
+  data-delete-url="/billing/delete/"
+  data-is-admin="{% if role == 'admin' %}true{% else %}false{% endif %}"
+  style="display:none;">
+</div>
 
 {% if role == 'farmer' %}
 
+{# ══════════════════════════════════════
+   FARMER VIEW — read-only bill list
+══════════════════════════════════════ #}
 <div class="farmer-bill-header">
   <h2>🧾 My Bills</h2>
   <button class="print-btn" onclick="window.print()">🖨️ Print All</button>
@@ -302,6 +40,7 @@
       </div>
       <div class="bill-total-badge">Rs. {{ bill.total|floatformat:0 }}</div>
     </div>
+
     {% if bill.cust_name or bill.cust_addr or bill.cust_phone %}
     <div class="bill-meta">
       {% if bill.cust_name  %}<span><strong>Name:</strong> {{ bill.cust_name }}</span>{% endif %}
@@ -309,6 +48,7 @@
       {% if bill.cust_phone %}<span><strong>Phone:</strong> {{ bill.cust_phone }}</span>{% endif %}
     </div>
     {% endif %}
+
     <table class="bill-items-table">
       <thead>
         <tr>
@@ -334,12 +74,14 @@
         </tr>
       </tfoot>
     </table>
+
     <div class="bill-card-actions">
       <button onclick="printBill(this)">🖨️ Print this bill</button>
     </div>
   </div>
   {% endfor %}
 </div>
+
 {% else %}
 <div class="no-bills">
   <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -349,18 +91,11 @@
 </div>
 {% endif %}
 
-<script>
-function printBill(btn) {
-  const card = btn.closest('.bill-card');
-  const actions = card.querySelector('.bill-card-actions');
-  actions.style.display = 'none';
-  window.print();
-  actions.style.display = '';
-}
-</script>
-
 {% else %}
 
+{# ══════════════════════════════════════
+   ADMIN / STAFF VIEW — full billing UI
+══════════════════════════════════════ #}
 <div class="page-layout">
   <div class="left-col">
 
@@ -403,7 +138,7 @@ function printBill(btn) {
     <div class="inv-wrap" id="invoicePrintArea">
       <div class="inv-badge">ABBREVIATED TAX INVOICE</div>
       <div class="inv-company">पद्म कञ्चन कृषि सहकारी संस्था लि.</div>
-<div class="inv-company">Padam Kanchan Agriculture Co-operative Organization Ltd</div>
+      <div class="inv-company">Padam Kanchan Agriculture Co-operative Organization Ltd</div>
       <div class="inv-address">भरतपुर महानगरपालिका–२२, पदमपोखरी, चितवन</div>
 
       <div class="inv-meta">
@@ -480,386 +215,12 @@ function printBill(btn) {
   </div>
 </div>
 
-<script>
-const CSRF       = '{{ csrf_token }}';
-const SAVE_URL   = '{% url "save_bill" %}';
-const LIST_URL   = '{% url "get_bills" %}';
-const DELETE_URL = '/billing/delete/';
-const IS_ADMIN   = '{{ role }}' === 'admin';
-
-/* ══════════════════════════════════════
-   PRODUCTS — 2 categories, English + Nepali
-══════════════════════════════════════ */
-const CATEGORIES = [
-  {
-    label: '🐄 Dairy Products',
-    labelNepali: 'दुग्ध उत्पादनहरू',
-    products: [
-      { id:'milk',   name:'Milk',   nepali:'दूध',     icon:'🥛', rate:65,   unit:'Ltr' },
-      { id:'butter', name:'Butter', nepali:'मक्खन',   icon:'🧈', rate:520,  unit:'Kg'  },
-      { id:'cheese', name:'Cheese', nepali:'चिज',     icon:'🧀', rate:680,  unit:'Kg'  },
-      { id:'curd',   name:'Curd',   nepali:'दही',     icon:'🍶', rate:90,   unit:'Kg'  },
-      { id:'ghee',   name:'Ghee',   nepali:'घिउ',     icon:'🫙', rate:1200, unit:'Kg'  },
-      { id:'cream',  name:'Cream',  nepali:'क्रिम',   icon:'🍦', rate:380,  unit:'Kg'  },
-      { id:'paneer', name:'Paneer', nepali:'पनिर',    icon:'🍱', rate:420,  unit:'Kg'  },
-      { id:'lassi',  name:'Lassi',  nepali:'लस्सी',   icon:'🥤', rate:45,   unit:'Ltr' },
-    ]
-  },
-  {
-    label: '🌾 Animal Feed',
-    labelNepali: 'पशु आहार',
-    products: [
-      { id:'goti_dana',    name:'Goti Dana',    nepali:'गोली दाना',    icon:'🟡', rate:55, unit:'Kg' },
-      { id:'veli_dana',    name:'Veli Dana',    nepali:'भेली दाना',    icon:'🟤', rate:48, unit:'Kg' },
-      { id:'soybean_meal', name:'Soybean Meal', nepali:'सोयाबिन खली', icon:'🫘', rate:72, unit:'Kg' },
-      { id:'wheat_bran',   name:'Wheat Bran',   nepali:'गहुँको चोकर', icon:'🌾', rate:32, unit:'Kg' },
-    ]
-  },
-];
-
-const PRODUCTS = CATEGORIES.flatMap(c => c.products);
-const cardQty  = {};
-PRODUCTS.forEach(p => cardQty[p.id] = 1);
-
-let items = [];
-let selectedFarmerId = null;
-
-/* ── FARMER SELECTOR ── */
-function onFarmerSelect() {
-  const sel   = document.getElementById('custSelect');
-  const opt   = sel.options[sel.selectedIndex];
-  const badge = document.getElementById('custModeBadge');
-
-  if (!sel.value) {
-    selectedFarmerId = null;
-    setFieldsReadonly(false);
-    document.getElementById('custName').value  = '';
-    document.getElementById('custAddr').value  = '';
-    document.getElementById('custPhone').value = '';
-    document.getElementById('custIdRow').style.display = 'none';
-    badge.textContent = 'Walk-in';
-    badge.className   = 'cust-mode-badge walk-in';
-    return;
-  }
-
-  selectedFarmerId = sel.value;
-  document.getElementById('custName').value  = opt.dataset.name  || '';
-  document.getElementById('custAddr').value  = opt.dataset.addr  || '';
-  document.getElementById('custPhone').value = opt.dataset.phone || '';
-  document.getElementById('custIdDisplay').textContent = 'F-' + sel.value;
-  document.getElementById('custIdRow').style.display   = 'flex';
-  setFieldsReadonly(true);
-  badge.textContent = 'Linked Farmer';
-  badge.className   = 'cust-mode-badge registered';
-}
-
-function setFieldsReadonly(ro) {
-  ['custName','custAddr','custPhone'].forEach(id => {
-    const el = document.getElementById(id);
-    ro ? el.setAttribute('readonly', true) : el.removeAttribute('readonly');
-  });
-}
-
-function clearFarmerSelect() {
-  document.getElementById('custSelect').value = '';
-  onFarmerSelect();
-}
-
-/* ── PRODUCT CARDS ── */
-function renderCards() {
-  document.getElementById('productGrid').innerHTML = CATEGORIES.map((cat, ci) => `
-    <div class="category-section">
-      ${ci > 0 ? '<hr class="category-divider">' : ''}
-      <div class="category-label">
-        ${cat.label}
-        <span class="category-label-nepali">${cat.labelNepali}</span>
-      </div>
-      <div class="product-grid">
-        ${cat.products.map(p => {
-          const added = items.some(it => it.pid === p.id);
-          return `
-            <div class="product-card${added ? ' added' : ''}">
-              <div class="product-icon">${p.icon}</div>
-              <div class="product-name">${p.name}</div>
-              <div class="product-nepali">${p.nepali}</div>
-              <div class="product-rate">Rs. ${p.rate.toLocaleString('en-IN')}</div>
-              <div class="product-unit">per ${p.unit}</div>
-              <div class="qty-row">
-                <button onclick="adjQty('${p.id}',-1)">−</button>
-                <input type="number" id="qty-${p.id}" value="${cardQty[p.id]}"
-                  min="0.01" step="0.01"
-                  oninput="cardQty['${p.id}']=parseFloat(this.value)||1" />
-                <button onclick="adjQty('${p.id}',1)">+</button>
-              </div>
-              <button class="add-btn${added ? ' update-btn' : ''}"
-                onclick="addProduct('${p.id}')">
-                ${added ? '✓ Update' : '+ Add'}
-              </button>
-            </div>`;
-        }).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
-function adjQty(id, d) {
-  const inp = document.getElementById('qty-' + id);
-  const v   = Math.max(0.01, Math.round(((parseFloat(inp.value)||1) + d)*100)/100);
-  inp.value = v; cardQty[id] = v;
-}
-
-function addProduct(id) {
-  const p   = PRODUCTS.find(x => x.id === id);
-  const qty = parseFloat(document.getElementById('qty-'+id).value) || 1;
-  const idx = items.findIndex(it => it.pid === id);
-  if (idx >= 0) { items[idx].qty = qty; items[idx].rate = p.rate; }
-  else items.push({
-    pid:  id,
-    desc: p.name + ' / ' + p.nepali + ' (' + p.unit + ')',
-    qty,
-    rate: p.rate
-  });
-  renderItems(); renderCards();
-}
-
-/* ── INVOICE TABLE ── */
-function removeRow(i) { items.splice(i, 1); renderItems(); renderCards(); }
-
-function renderItems() {
-  const tbody = document.getElementById('itemBody');
-  if (!items.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No items yet — select products above.</td></tr>`;
-    recalc(); return;
-  }
-  tbody.innerHTML = items.map((it, i) => {
-    const amt = it.qty * it.rate;
-    const rs  = Math.floor(amt);
-    const ps  = Math.round((amt - rs) * 100);
-    return `
-      <tr>
-        <td class="col-sn">${i+1}</td>
-        <td class="col-part">
-          <input value="${esc(it.desc)}" oninput="items[${i}].desc=this.value" />
-        </td>
-        <td class="col-qty">
-          <input type="number" value="${it.qty}" min="0" step="0.01" style="text-align:right;"
-            oninput="items[${i}].qty=parseFloat(this.value)||0;recalc()" />
-        </td>
-        <td class="col-rate">
-          <input type="number" value="${it.rate}" min="0" step="0.01" style="text-align:right;"
-            oninput="items[${i}].rate=parseFloat(this.value)||0;recalc()" />
-        </td>
-        <td class="col-rs">${rs ? rs.toLocaleString('en-IN') : ''}</td>
-        <td class="col-ps">${ps || ''}</td>
-        <td style="border:none;text-align:center;">
-          <button class="btn-rm" onclick="removeRow(${i})">&times;</button>
-        </td>
-      </tr>`;
-  }).join('');
-  recalc();
-}
-
-function recalc() {
-  const total = items.reduce((s, it) => s + it.qty * it.rate, 0);
-  const rs = Math.floor(total), ps = Math.round((total - rs) * 100);
-  document.getElementById('totalRs').textContent = rs ? rs.toLocaleString('en-IN') : '';
-  document.getElementById('totalPs').textContent = ps || '';
-  document.getElementById('wordsBox').textContent =
-    rs ? 'In Words: ' + cap(toWords(rs)) + ' rupees only.' : '';
-}
-
-/* ── SAVE & PRINT ── */
-async function saveAndPrint() {
-  if (!items.length) { showToast('⚠ Add at least one item.', '#b00'); return; }
-
-  const payload = {
-    farmer_id:  selectedFarmerId,
-    inv_no:     document.getElementById('invNo').value.trim()  || 'INV-???',
-    inv_date:   document.getElementById('invDate').value       || new Date().toISOString().slice(0,10),
-    cust_name:  document.getElementById('custName').value.trim(),
-    cust_addr:  document.getElementById('custAddr').value.trim(),
-    cust_phone: document.getElementById('custPhone').value.trim(),
-    total:      Math.round(items.reduce((s,it) => s + it.qty*it.rate, 0) * 100) / 100,
-    items:      items.map(it => ({ desc: it.desc, qty: it.qty, rate: it.rate })),
-  };
-
-  try {
-    const res  = await fetch(SAVE_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body:    JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('✓ Bill saved to database!');
-      loadHistory();
-      window.print();
-      autoIncrementInvNo();
-    } else {
-      showToast('⚠ Save failed: ' + (data.error || 'unknown'), '#b00');
-    }
-  } catch(e) {
-    showToast('⚠ Network error — bill not saved.', '#b00');
-    window.print();
-  }
-}
-
-function autoIncrementInvNo() {
-  const cur = document.getElementById('invNo').value;
-  const m   = cur.match(/(\D*)(\d+)(\D*)$/);
-  if (m) document.getElementById('invNo').value =
-    m[1] + String(parseInt(m[2])+1).padStart(m[2].length, '0') + m[3];
-}
-
-function newInvoice() {
-  clearAll(); clearFarmerSelect();
-  document.getElementById('invDate').valueAsDate = new Date();
-  showToast('New invoice ready.');
-}
-
-function clearAll() {
-  items = [];
-  PRODUCTS.forEach(p => cardQty[p.id] = 1);
-  renderItems(); renderCards();
-}
-
-/* ── HISTORY ── */
-async function loadHistory() {
-  try {
-    const res  = await fetch(LIST_URL);
-    const data = await res.json();
-    renderHistory(data.bills || []);
-  } catch(e) {
-    document.getElementById('histList').innerHTML =
-      '<div class="hist-empty">Could not load history.</div>';
-  }
-}
-
-function renderHistory(bills) {
-  document.getElementById('histCount').textContent = bills.length;
-  const list = document.getElementById('histList');
-  if (!bills.length) {
-    list.innerHTML = '<div class="hist-empty">No bills saved yet.</div>'; return;
-  }
-  list.innerHTML = bills.map(b => `
-    <div class="hist-item">
-      <div class="hi-invno">${esc(b.inv_no)}</div>
-      ${b.farmer_id ? `<div class="hi-farmer">👨‍🌾 Farmer #${b.farmer_id}</div>` : ''}
-      <div class="hi-name">${esc(b.cust_name || '—')}</div>
-      <div class="hi-total">Rs. ${Math.floor(b.total).toLocaleString('en-IN')}</div>
-      <div class="hi-date">${formatDate(b.inv_date)}</div>
-      <div class="hi-actions">
-        <button onclick="viewBill(${b.id})">👁 View</button>
-        ${IS_ADMIN ? `<button class="del-btn" onclick="deleteBill(${b.id})">🗑 Delete</button>` : ''}
-      </div>
-    </div>`).join('');
-  window._billHistory = bills;
-}
-
-function viewBill(id) {
-  const b = (window._billHistory||[]).find(x => x.id === id);
-  if (!b) return;
-  const rows = b.items.map((it,i) => `
-    <tr>
-      <td>${i+1}</td>
-      <td>${esc(it.desc)}</td>
-      <td style="text-align:right">${it.qty}</td>
-      <td style="text-align:right">Rs.${it.rate.toLocaleString('en-IN')}</td>
-      <td>Rs.${Math.floor(it.amount).toLocaleString('en-IN')}</td>
-    </tr>`).join('');
-
-  document.getElementById('modalTitle').textContent = 'Bill — ' + b.inv_no;
-  document.getElementById('modalContent').innerHTML = `
-    <div class="modal-row"><span class="lbl">Invoice No.</span><span class="val">${esc(b.inv_no)}</span></div>
-    <div class="modal-row"><span class="lbl">Date</span><span class="val">${formatDate(b.inv_date)}</span></div>
-    ${b.farmer_id ? `<div class="modal-row"><span class="lbl">Farmer ID</span><span class="val" style="color:#2e7d32;">F-${b.farmer_id}</span></div>` : ''}
-    <div class="modal-row"><span class="lbl">Customer</span><span class="val">${esc(b.cust_name||'—')}</span></div>
-    <div class="modal-row"><span class="lbl">Address</span><span class="val">${esc(b.cust_addr||'—')}</span></div>
-    ${b.cust_phone ? `<div class="modal-row"><span class="lbl">Phone</span><span class="val">${esc(b.cust_phone)}</span></div>` : ''}
-    <div class="modal-items">
-      <table>
-        <thead>
-          <tr><th>#</th><th>Particulars</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    <div class="modal-total">Total: Rs. ${Math.floor(b.total).toLocaleString('en-IN')}</div>
-    <div style="font-size:11px;color:#aaa;margin-top:8px;">
-      Saved: ${new Date(b.saved_at).toLocaleString()}
-    </div>`;
-  document.getElementById('detailModal').classList.add('open');
-}
-
-async function deleteBill(id) {
-  if (!confirm('Delete this bill permanently?')) return;
-  try {
-    const res  = await fetch(DELETE_URL + id + '/', {
-      method:  'POST',
-      headers: { 'X-CSRFToken': CSRF },
-    });
-    const data = await res.json();
-    if (data.success) { showToast('Bill deleted.', '#555'); loadHistory(); }
-    else showToast('⚠ ' + (data.error || 'Delete failed'), '#b00');
-  } catch(e) { showToast('⚠ Network error.', '#b00'); }
-}
-
-function closeModal() {
-  document.getElementById('detailModal').classList.remove('open');
-}
-
-/* ── HELPERS ── */
-function showToast(msg, bg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.background = bg || '#2e7d32';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d + 'T00:00:00').toLocaleDateString('en-IN',
-    { day:'2-digit', month:'short', year:'numeric' });
-}
-
-function esc(s) {
-  return String(s||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-const O = ['','one','two','three','four','five','six','seven','eight','nine','ten',
-           'eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen',
-           'eighteen','nineteen'];
-const T = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
-
-function toWords(n) {
-  n = Math.floor(n);
-  if (!n)      return 'zero';
-  if (n < 20)  return O[n];
-  if (n < 100) return T[Math.floor(n/10)] + (n%10 ? ' '+O[n%10] : '');
-  if (n < 1e3) return O[Math.floor(n/100)] + ' hundred' + (n%100 ? ' '+toWords(n%100) : '');
-  if (n < 1e5) return toWords(Math.floor(n/1000)) + ' thousand' + (n%1000 ? ' '+toWords(n%1000) : '');
-  if (n < 1e7) return toWords(Math.floor(n/1e5))  + ' lakh'     + (n%1e5  ? ' '+toWords(n%1e5)  : '');
-  return toWords(Math.floor(n/1e7)) + ' crore' + (n%1e7 ? ' '+toWords(n%1e7) : '');
-}
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-/* ── INIT ── */
-document.getElementById('invDate').valueAsDate = new Date();
-renderCards();
-renderItems();
-loadHistory();
-
-document.getElementById('detailModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-</script>
-
 {% endif %}
-{# end role split #}
 
 <div id="toast"></div>
 
 {% endblock %}
 
+{% block extra_scripts %}
+<script src="{% static 'js/billing.js' %}"></script>
+{% endblock %}

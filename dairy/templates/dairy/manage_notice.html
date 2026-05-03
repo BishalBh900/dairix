@@ -1,39 +1,117 @@
 ﻿{% extends 'dairy/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'dairy/css/notices.css' %}">
+<style>
+  .notices-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .notice-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+  .notice-card.unread { border-left: 4px solid #DC2626; }
+  .notice-card.read   { border-left: 4px solid #E5E7EB; }
+  .notice-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .notice-body { flex: 1; }
+  .notice-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .notice-unread-dot {
+    width: 8px;
+    height: 8px;
+    background: #DC2626;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .notice-title   { font-weight: 600; font-size: 15px; }
+  .notice-message { font-size: 13px; color: #6B7280; margin-bottom: 6px; }
+  .notice-meta    { font-size: 11px; color: #9CA3AF; }
+
+  .notice-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+  }
+  .notice-modal-overlay.show { display: flex; }
+  .notice-modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    position: relative;
+  }
+  .notice-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .notice-modal-title  { font-size: 16px; font-weight: 600; }
+  .notice-modal-close  {
+    background: none; border: none;
+    font-size: 22px; cursor: pointer;
+    color: #6B7280; line-height: 1;
+  }
+  .notice-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="card-header" style="margin-bottom:20px;">
   <h2 class="card-title">📢 Notices</h2>
   {% if request.user.profile.role == 'admin' or request.user.profile.role == 'staff' %}
-  <button class="btn btn-primary"
-          onclick="document.getElementById('noticeModal').style.display='flex'">
-    + New Notice
-  </button>
+  <button class="btn btn-primary" onclick="openNoticeModal()">+ New Notice</button>
   {% endif %}
 </div>
 
 {% if notices %}
-<div style="display:flex; flex-direction:column; gap:12px;">
+<div class="notices-list">
   {% for n in notices %}
-  <div class="card" style="display:flex; align-items:flex-start; gap:16px; padding:16px;
-       border-left: 4px solid {% if n.id not in read_ids %}#DC2626{% else %}#E5E7EB{% endif %};">
+  <div class="card notice-card {% if n.id not in read_ids %}unread{% else %}read{% endif %}">
 
     {% if n.image %}
-    <img src="{{ n.image.url }}"
-         style="width:80px; height:80px; object-fit:cover; border-radius:8px; flex-shrink:0;">
+    <img src="{{ n.image.url }}" class="notice-img">
     {% endif %}
 
-    <div style="flex:1;">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+    <div class="notice-body">
+      <div class="notice-title-row">
         {% if n.id not in read_ids %}
-        <span style="width:8px; height:8px; background:#DC2626; border-radius:50%;
-                     display:inline-block; flex-shrink:0;"></span>
+        <span class="notice-unread-dot"></span>
         {% endif %}
-        <span style="font-weight:600; font-size:15px;">{{ n.title }}</span>
+        <span class="notice-title">{{ n.title }}</span>
       </div>
       {% if n.message %}
-      <p style="font-size:13px; color:#6B7280; margin-bottom:6px;">{{ n.message }}</p>
+      <p class="notice-message">{{ n.message }}</p>
       {% endif %}
-      <span style="font-size:11px; color:#9CA3AF;">
+      <span class="notice-meta">
         {{ n.created_at|date:"N j, Y" }}
         {% if n.created_by %} · by {{ n.created_by.username }}{% endif %}
       </span>
@@ -47,6 +125,7 @@
               style="padding:6px 12px; font-size:12px;">Delete</button>
     </form>
     {% endif %}
+
   </div>
   {% endfor %}
 </div>
@@ -58,19 +137,12 @@
 
 <!-- ── MODAL (admin & staff only) ── -->
 {% if request.user.profile.role == 'admin' or request.user.profile.role == 'staff' %}
-<div id="noticeModal" style="display:none; position:fixed; inset:0;
-     background:rgba(0,0,0,0.45); z-index:999;
-     align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:12px; padding:28px;
-              width:100%; max-width:480px;
-              box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
+<div id="noticeModal" class="notice-modal-overlay">
+  <div class="notice-modal">
 
-    <div style="display:flex; justify-content:space-between;
-                align-items:center; margin-bottom:20px;">
-      <h3 style="font-size:16px; font-weight:600;">New Notice</h3>
-      <button onclick="document.getElementById('noticeModal').style.display='none'"
-        style="background:none; border:none; font-size:22px;
-               cursor:pointer; color:#6B7280; line-height:1;">×</button>
+    <div class="notice-modal-header">
+      <h3 class="notice-modal-title">New Notice</h3>
+      <button class="notice-modal-close" onclick="closeNoticeModal()">×</button>
     </div>
 
     <form method="post" enctype="multipart/form-data">
@@ -83,7 +155,7 @@
 
       <div class="form-group">
         <label>Message</label>
-        <textarea name="message" rows="3" placeholder="Optional details..."
+        <textarea name="message" rows="3" placeholder="Optional details…"
                   style="resize:vertical;"></textarea>
       </div>
 
@@ -92,17 +164,26 @@
         <input type="file" name="image" accept="image/*">
       </div>
 
-      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
-        <button type="button" class="btn btn-outline"
-          onclick="document.getElementById('noticeModal').style.display='none'">
-          Cancel
-        </button>
+      <div class="notice-modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeNoticeModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Post Notice</button>
       </div>
     </form>
+
   </div>
 </div>
+
+<script>
+  function openNoticeModal() {
+    document.getElementById('noticeModal').classList.add('show');
+  }
+  function closeNoticeModal() {
+    document.getElementById('noticeModal').classList.remove('show');
+  }
+  document.getElementById('noticeModal').addEventListener('click', function(e) {
+    if (e.target === this) closeNoticeModal();
+  });
+</script>
 {% endif %}
 
 {% endblock %}
-

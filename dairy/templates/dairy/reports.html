@@ -1,8 +1,10 @@
 ﻿{% extends "dairy/base.html" %}
+{% load static %}
 {% block title %}Reports — DairyMS{% endblock %}
 {% block page_title %}Reports & Analytics{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{% static 'dairy/css/reports.css' %}">
 <style>
   /* ── FILTER PILLS ── */
   .filter-pills {
@@ -266,7 +268,7 @@
   </div>
 </div>
 
-<!-- ── FARMER TABLE (same for both roles) ── -->
+<!-- ── FARMER TABLE ── -->
 <div class="card section-gap" id="printArea">
   <div class="card-header" style="flex-wrap:wrap;gap:10px;">
     <div>
@@ -274,11 +276,7 @@
         {% if role == 'farmer' %}My Milk Summary{% else %}All Farmers{% endif %}
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
-        {% if active_period_label %}
-          {{ active_period_label }}
-        {% else %}
-          All time milk &amp; revenue
-        {% endif %}
+        {% if active_period_label %}{{ active_period_label }}{% else %}All time milk &amp; revenue{% endif %}
       </div>
     </div>
 
@@ -357,42 +355,45 @@
 {% endwith %}
 
 <script>
-function setPeriod(p) {
-  document.getElementById('periodInput').value = p;
-  document.getElementById('fromInput').value   = '';
-  document.getElementById('toInput').value     = '';
-  document.getElementById('filterForm').submit();
-}
-function toggleCustom() {
-  document.getElementById('customRange').classList.toggle('show');
-}
-function applyCustom() {
-  var from = document.getElementById('fromDate').value;
-  var to   = document.getElementById('toDate').value;
-  if (!from || !to) { alert('Please select both dates.'); return; }
-  document.getElementById('periodInput').value = 'custom';
-  document.getElementById('fromInput').value   = from;
-  document.getElementById('toInput').value     = to;
-  document.getElementById('filterForm').submit();
-}
-
-function filterTable(query) {
-  const q     = query.trim().toLowerCase();
-  const rows  = document.querySelectorAll('#farmerTbody tr');
-  const countEl = document.getElementById('visibleCount');
-  let visible = 0;
-
-  rows.forEach(row => {
-    const name = row.dataset.name  || '';
-    const id   = '#' + (row.dataset.id || '');
-    const match = !q || name.includes(q) || id.includes(q);
-    row.classList.toggle('hidden-row', !match);
-    if (match) visible++;
-  });
-
-  if (countEl) {
-    countEl.textContent = visible + (visible === 1 ? ' farmer' : ' farmers');
+  function setPeriod(p) {
+    document.getElementById('periodInput').value = p;
+    document.getElementById('fromInput').value   = '';
+    document.getElementById('toInput').value     = '';
+    document.getElementById('filterForm').submit();
   }
-}
+
+  function toggleCustom() {
+    document.getElementById('customRange').classList.toggle('show');
+  }
+
+  function applyCustom() {
+    var from = document.getElementById('fromDate').value;
+    var to   = document.getElementById('toDate').value;
+    if (!from || !to) { alert('Please select both dates.'); return; }
+    document.getElementById('periodInput').value = 'custom';
+    document.getElementById('fromInput').value   = from;
+    document.getElementById('toInput').value     = to;
+    document.getElementById('filterForm').submit();
+  }
+
+  function filterTable(query) {
+    const q       = query.trim().toLowerCase();
+    const rows    = document.querySelectorAll('#farmerTbody tr');
+    const countEl = document.getElementById('visibleCount');
+    let visible   = 0;
+
+    rows.forEach(row => {
+      const name  = row.dataset.name || '';
+      const id    = '#' + (row.dataset.id || '');
+      const match = !q || name.includes(q) || id.includes(q);
+      row.classList.toggle('hidden-row', !match);
+      if (match) visible++;
+    });
+
+    if (countEl) {
+      countEl.textContent = visible + (visible === 1 ? ' farmer' : ' farmers');
+    }
+  }
 </script>
+
 {% endblock %}

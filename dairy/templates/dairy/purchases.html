@@ -1,8 +1,10 @@
 ﻿{% extends "dairy/base.html" %}
+{% load static %}
 {% block title %}Purchases — DairyMS{% endblock %}
 {% block page_title %}Purchases{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="{% static 'dairy/css/purchases.css' %}">
 <style>
   .filter-row {
     display: flex;
@@ -32,7 +34,6 @@
   }
   .search-box input:focus { outline: none; box-shadow: none; border: none; }
 
-  /* Modal */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -79,7 +80,6 @@
   }
   .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
 
-  /* Items table inside modal */
   .items-table-wrap {
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -91,9 +91,7 @@
     border-collapse: collapse;
     font-size: 13px;
   }
-  .items-table thead tr {
-    background: #f3f4f6;
-  }
+  .items-table thead tr { background: #f3f4f6; }
   .items-table thead th {
     padding: 9px 10px;
     font-weight: 600;
@@ -104,13 +102,8 @@
     letter-spacing: 0.5px;
     white-space: nowrap;
   }
-  .items-table tbody tr {
-    border-top: 1px solid var(--border);
-  }
-  .items-table tbody td {
-    padding: 6px 8px;
-    vertical-align: middle;
-  }
+  .items-table tbody tr { border-top: 1px solid var(--border); }
+  .items-table tbody td { padding: 6px 8px; vertical-align: middle; }
   .items-table input {
     width: 100%;
     border: 1px solid #e5e7eb;
@@ -295,7 +288,6 @@
     <button class="modal-close" onclick="closeModal()">×</button>
     <div class="modal-title">🛒 Add Purchase</div>
 
-    <!-- Invoice Info -->
     <div class="form-row-2">
       <div class="form-group">
         <label>Invoice No.</label>
@@ -307,13 +299,11 @@
       </div>
     </div>
 
-    <!-- Vendor -->
     <div class="form-group" style="margin-bottom:16px;">
       <label>Vendor / Company</label>
       <input type="text" id="m_vendor" placeholder="Vendor name" />
     </div>
 
-    <!-- Line Items -->
     <label style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">
       Items
     </label>
@@ -329,20 +319,16 @@
             <th class="col-del"></th>
           </tr>
         </thead>
-        <tbody id="itemsBody">
-          <!-- rows injected by JS -->
-        </tbody>
+        <tbody id="itemsBody"></tbody>
       </table>
     </div>
 
     <button type="button" class="btn-add-row" onclick="addItemRow()">+ Add Item</button>
 
-    <!-- Grand Total -->
     <div class="grand-total-row">
       Grand Total: <span id="grandTotal">Rs.0.00</span>
     </div>
 
-    <!-- Notes -->
     <div class="form-group">
       <label>Notes (optional)</label>
       <textarea id="m_notes" rows="2" placeholder="Any additional notes…" style="resize:vertical;width:100%;"></textarea>
@@ -358,7 +344,6 @@
 </div>
 
 <script>
-  // ── Item rows ──
   let rowIdx = 0;
 
   function addItemRow(desc='', qty=1, unit='', rate='') {
@@ -411,13 +396,12 @@
     document.getElementById('grandTotal').textContent = 'Rs.' + total.toFixed(2);
   }
 
-  // ── Modal open / close ──
   function openModal() {
     document.getElementById('modalOverlay').classList.add('show');
     document.getElementById('m_inv_date').value = new Date().toISOString().split('T')[0];
     document.getElementById('itemsBody').innerHTML = '';
     rowIdx = 0;
-    addItemRow();   // start with one blank row
+    addItemRow();
     document.getElementById('m_inv_no').focus();
     document.getElementById('modalMsg').textContent = '';
   }
@@ -431,7 +415,6 @@
     if (e.target === this) closeModal();
   });
 
-  // ── Save ──
   async function savePurchase() {
     const msg      = document.getElementById('modalMsg');
     const inv_no   = document.getElementById('m_inv_no').value.trim();
@@ -439,7 +422,6 @@
     const vendor   = document.getElementById('m_vendor').value.trim();
     const notes    = document.getElementById('m_notes').value.trim();
 
-    // collect items
     const items = [];
     document.querySelectorAll('#itemsBody tr').forEach(tr => {
       const desc = tr.querySelector('.i-desc').value.trim();
@@ -470,7 +452,6 @@
     msg.style.color = '#6b7280';
     msg.textContent = 'Saving…';
 
-    // Build particulars string for the single-column table display
     const particulars = items.map(i =>
       `${i.description}${i.unit ? ' ('+i.unit+')' : ''} × ${i.quantity} @ Rs.${i.rate.toFixed(2)}`
     ).join('; ');
@@ -482,13 +463,7 @@
         'X-CSRFToken': '{{ csrf_token }}',
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify({
-        inv_no, inv_date, vendor,
-        particulars,
-        amount: totalAmt,
-        notes,
-        items,          // extra detail; use if your model/view supports it
-      }),
+      body: JSON.stringify({ inv_no, inv_date, vendor, particulars, amount: totalAmt, notes, items }),
     });
 
     const data = await res.json();
@@ -498,7 +473,6 @@
       msg.textContent = '✓ Saved!';
       injectRow({ id: data.id, inv_no, inv_date, vendor, particulars, amount: totalAmt });
 
-      // reset form
       document.getElementById('m_inv_no').value  = '';
       document.getElementById('m_vendor').value  = '';
       document.getElementById('m_notes').value   = '';
@@ -507,7 +481,6 @@
       addItemRow();
       document.getElementById('m_inv_date').value = new Date().toISOString().split('T')[0];
       refreshGrandTotal();
-
       setTimeout(closeModal, 900);
     } else {
       msg.style.color = 'red';
@@ -515,7 +488,6 @@
     }
   }
 
-  // ── Inject row into register table ──
   function fmtDate(iso) {
     const [y,m,d] = iso.split('-');
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -578,7 +550,6 @@
     el.textContent = 'Rs.' + (cur + addAmt).toFixed(2);
   }
 
-  // ── Delete ──
   async function deletePurchase(id) {
     if (!confirm('Delete this purchase record?')) return;
     const res  = await fetch(`/purchases/delete/${id}/`, {
@@ -598,4 +569,3 @@
 </script>
 
 {% endblock %}
-

@@ -1,0 +1,119 @@
+/* ── notices.css ── */
+
+.notices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+}
+
+.notice-card.unread {
+  border-left: 4px solid #DC2626;
+}
+
+.notice-card.read {
+  border-left: 4px solid #E5E7EB;
+}
+
+.notice-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.notice-body {
+  flex: 1;
+}
+
+.notice-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.notice-unread-dot {
+  width: 8px;
+  height: 8px;
+  background: #DC2626;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.notice-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.notice-message {
+  font-size: 13px;
+  color: #6B7280;
+  margin-bottom: 6px;
+}
+
+.notice-meta {
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+/* ── Modal ── */
+.notice-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+}
+
+.notice-modal-overlay.show {
+  display: flex;
+}
+
+.notice-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  position: relative;
+}
+
+.notice-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notice-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notice-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #6B7280;
+  line-height: 1;
+}
+
+.notice-modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
