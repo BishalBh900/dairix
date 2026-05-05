@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Avg
-from datetime import date, timedelta
+from django.http import JsonResponse
+from datetime import date, timedelta, datetime
 
 from ..models import Farmer, MilkCollection, Bill
 from ..utils import get_role
@@ -40,7 +41,6 @@ def reports(request):
         range_start, range_end = today.replace(day=1), today
         active_period_label = 'This Month'
     elif period == 'custom' and from_date and to_date:
-        from datetime import datetime
         range_start = datetime.strptime(from_date, '%Y-%m-%d').date()
         range_end   = datetime.strptime(to_date,   '%Y-%m-%d').date()
         active_period_label = f'{from_date} → {to_date}'
@@ -152,4 +152,63 @@ def reports(request):
         'active_period_label':       active_period_label,
         'sort_by':                   sort_by,
         'role':                      role,
+    })
+
+# ── ADD THESE IMPORTS at the top of report_views.py if not already there ──
+# from django.http import JsonResponse
+# from datetime import date, timedelta, datetime
+# from ..models import Farmer, MilkCollection
+
+
+@login_required(login_url='login')
+def farmer_history_api(request):
+    farmer_id = request.GET.get('farmer_id')
+    period    = request.GET.get('period', '7')   # '7', '15', '30', or 'custom'
+    from_date = request.GET.get('from_date')
+    to_date   = request.GET.get('to_date')
+    today     = date.today()
+
+    if not farmer_id:
+        return JsonResponse({'error': 'farmer_id required'}, status=400)
+
+    try:
+        farmer = Farmer.objects.get(id=farmer_id)
+    except Farmer.DoesNotExist:
+        return JsonResponse({'error': 'Farmer not found'}, status=404)
+
+    if period == 'custom' and from_date and to_date:
+        start = datetime.strptime(from_date, '%Y-%m-%d').date()
+        end   = datetime.strptime(to_date,   '%Y-%m-%d').date()
+    else:
+        days  = int(period) if period in ('7', '15', '30') else 7
+        start = today - timedelta(days=days)
+        end   = today
+
+    qs = MilkCollection.objects.filter(
+        farmer=farmer,
+        date__range=[start, end]
+    ).order_by('-date')
+
+    records = []
+    for entry in qs:
+        records.append({
+            'date':        entry.date.strftime('%d %b %Y'),
+            'session':     getattr(entry, 'session', '—'),
+            'milk_liters': float(entry.quantity),              # renamed
+            'fat_percent': float(entry.fat),                   # renamed
+            'snf_percent': float(entry.snf) if entry.snf else 0,  # renamed
+            'amount':      float(entry.total_amount),          # renamed
+        })
+
+    total_milk    = sum(r['milk_liters'] for r in records)
+    total_revenue = sum(r['amount']      for r in records)
+    avg_fat       = round(sum(r['fat_percent'] for r in records) / len(records), 2) if records else 0
+    avg_snf       = round(sum(r['snf_percent'] for r in records) / len(records), 2) if records else 0
+
+    return JsonResponse({
+        'total_milk':    round(total_milk, 1),    # flat — not nested in 'summary'
+        'total_revenue': round(total_revenue, 0), # flat
+        'avg_fat':       avg_fat,                 # flat
+        'avg_snf':       avg_snf,                 # flat
+        'records':       records,
     })

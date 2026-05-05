@@ -1,5 +1,4 @@
-/* sales.js — Dairix Sales Page
-   Chart data is injected via <div id="salesConfig" data-...> in the template */
+
 
 const cfg           = document.getElementById('salesConfig').dataset;
 const dailyLabels   = JSON.parse(cfg.dailyLabels);
@@ -108,5 +107,49 @@ if (farmerNames.length > 0) {
   canvas.insertAdjacentHTML(
     'afterend',
     '<p style="text-align:center;color:#9ca3af;font-size:13px;padding-top:70px;">No farmer data yet</p>'
+  );
+}
+const productNames = JSON.parse(cfg.productNames);
+const productRevs  = JSON.parse(cfg.productRevs);
+
+if (productNames.length > 0) {
+  new Chart(document.getElementById('productChart'), {
+    type: 'doughnut',
+    data: {
+      labels: productNames,
+      datasets: [{
+        data: productRevs,
+        backgroundColor: ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#06b6d4'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: muted, font, boxWidth: 10, padding: 10 }
+        },
+        tooltip: {
+          callbacks: {
+            label: c => {
+              const total = c.dataset.data.reduce((a, b) => a + b, 0);
+              const pct   = ((c.parsed / total) * 100).toFixed(1);
+              return ` Rs.${c.parsed.toFixed(2)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+} else {
+  const canvas = document.getElementById('productChart');
+  canvas.style.display = 'none';
+  canvas.insertAdjacentHTML(
+    'afterend',
+    '<p style="text-align:center;color:#9ca3af;font-size:13px;padding-top:70px;">No product data yet</p>'
   );
 }

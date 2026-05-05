@@ -11,7 +11,7 @@ urlpatterns = [
     path('farmers/',                views.farmers,       name='farmers'),
     path('add-farmer/',             views.add_farmer,    name='add_farmer'),
     path('delete-farmer/<int:id>/', views.delete_farmer, name='delete_farmer'),
-    path('farmers/<int:farmer_id>/photo/', views.upload_farmer_photo, name='upload_farmer_photo'),  # 👈 ADD THIS
+    path('farmers/<int:farmer_id>/photo/', views.upload_farmer_photo, name='upload_farmer_photo'),
     path('milk/', views.milk, name='milk'),
     path('billing/',                       views.billing,          name='billing'),
     path('billing/save/',                  views.save_bill,        name='save_bill'),
@@ -20,8 +20,10 @@ urlpatterns = [
     path('sales/', views.sales, name='sales'),
     path('about/', views.about, name='about'),
     path('reports/', views.reports, name='reports'),
+    path('reports/farmer-history/', views.farmer_history_api, name='farmer_history_api'),  # NEW
     path('purchases/',                    views.purchases,       name='purchases'),
     path('purchases/delete/<int:pk>/',    views.delete_purchase, name='delete_purchase'),
+    path('purchases/<int:pk>/detail/', views.purchase_detail_api, name='purchase_detail'),
 
     # 📢 NOTICES
     path('notices/',                   views.get_notices,        name='get_notices'),

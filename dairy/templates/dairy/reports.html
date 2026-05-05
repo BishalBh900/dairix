@@ -1,399 +1,303 @@
 ﻿{% extends "dairy/base.html" %}
 {% load static %}
-{% block title %}Reports — DairyMS{% endblock %}
+
+{% block title %}Reports — Dairix DMS{% endblock %}
 {% block page_title %}Reports & Analytics{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'dairy/css/reports.css' %}">
-<style>
-  /* ── FILTER PILLS ── */
-  .filter-pills {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .pill-btn {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid var(--border);
-    background: var(--white);
-    color: var(--text-muted);
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.15s;
-  }
-  .pill-btn:hover, .pill-btn.active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
-  .custom-range {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-  }
-  .custom-range.show { display: flex; }
-
-  /* ── SEARCH BAR ── */
-  .search-wrap {
-    position: relative;
-    max-width: 300px;
-  }
-  .search-wrap svg {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-  .search-wrap input {
-    padding-left: 32px;
-    font-size: 13px;
-    height: 34px;
-  }
-
-  /* ── STATS ROW ── */
-  .report-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .report-stat {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .report-stat::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--primary);
-  }
-  .report-stat.amber::before { background: var(--warning); }
-  .report-stat.blue::before  { background: #3B82F6; }
-  .report-stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-  .report-stat-value { font-size: 22px; font-weight: 700; color: var(--text); margin-top: 4px; }
-
-  /* ── TABLE ── */
-  .report-table-wrap { overflow-x: auto; }
-  .report-table-wrap table { width: 100%; border-collapse: collapse; }
-  .report-table-wrap th {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    background: #F9FAFB;
-  }
-  .report-table-wrap td {
-    padding: 11px 12px;
-    font-size: 13px;
-    border-bottom: 1px solid #F3F4F6;
-    vertical-align: middle;
-  }
-  .report-table-wrap tr:last-child td { border-bottom: none; }
-  .report-table-wrap tr:hover td { background: #F9FAFB; }
-  .report-table-wrap tfoot td {
-    background: #F9FAFB;
-    font-weight: 600;
-    padding: 10px 12px;
-    font-size: 13px;
-    border-top: 1px solid var(--border);
-  }
-
-  .badge-id {
-    display: inline-block;
-    background: var(--primary-soft);
-    color: var(--primary);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 10px;
-  }
-
-  /* ── SORT BUTTONS ── */
-  .sort-btn {
-    padding: 4px 12px;
-    border-radius: 14px;
-    font-size: 11px;
-    font-weight: 500;
-    border: 1px solid var(--border);
-    background: var(--white);
-    color: var(--text-muted);
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.15s;
-  }
-  .sort-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .sort-btn.active-milk    { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .sort-btn.active-revenue { background: var(--warning); color: #fff; border-color: var(--warning); }
-
-  /* ── HIDDEN ROW (search filter) ── */
-  tr.hidden-row { display: none; }
-
-  /* ── DAILY BREAKDOWN ── */
-  .daily-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .daily-card-header {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .daily-card-title { font-size: 14px; font-weight: 600; color: var(--text); }
-
-  @media print {
-    body * { visibility: hidden; }
-    #printArea, #printArea * { visibility: visible; }
-    #printArea { position: absolute; top: 0; left: 0; width: 100%; }
-    .no-print { display: none !important; }
-    .report-table-wrap table { font-size: 12px; }
-    .badge-id { border: 1px solid #ccc; }
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/reports.css' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 {% with role=request.user.profile.role %}
 
 <!-- ── FILTER BAR ── -->
-<form method="get" id="filterForm" class="no-print">
-  <input type="hidden" name="period"    id="periodInput" value="{{ request.GET.period|default:'' }}">
-  <input type="hidden" name="from_date" id="fromInput"   value="{{ request.GET.from_date|default:'' }}">
-  <input type="hidden" name="to_date"   id="toInput"     value="{{ request.GET.to_date|default:'' }}">
-  <input type="hidden" name="sort"      id="sortInput"   value="{{ sort_by|default:'filtered_milk' }}">
+<form id="filterForm" method="get" class="no-print">
+  <input type="hidden" id="periodInput" name="period"    value="{{ request.GET.period|default:'' }}">
+  <input type="hidden" id="fromInput"   name="from_date" value="{{ request.GET.from_date|default:'' }}">
+  <input type="hidden" id="toInput"     name="to_date"   value="{{ request.GET.to_date|default:'' }}">
+  <input type="hidden" id="sortInput"   name="sort"      value="{{ sort_by|default:'filtered_milk' }}">
 
-  <div class="filter-pills">
-    <span style="font-size:12px;color:var(--text-muted);font-weight:500;">Filter:</span>
-    <a href="{% url 'reports' %}?sort={{ sort_by|default:'filtered_milk' }}"
-       class="pill-btn {% if not request.GET.period and not request.GET.from_date %}active{% endif %}">All Time</a>
-    <button type="button" class="pill-btn {% if request.GET.period == 'week' %}active{% endif %}"    onclick="setPeriod('week')">This Week</button>
-    <button type="button" class="pill-btn {% if request.GET.period == '15days' %}active{% endif %}"  onclick="setPeriod('15days')">15 Days</button>
-    <button type="button" class="pill-btn {% if request.GET.period == 'month' %}active{% endif %}"   onclick="setPeriod('month')">This Month</button>
-    <button type="button" class="pill-btn {% if request.GET.period == 'custom' %}active{% endif %}"  onclick="toggleCustom()">Custom Range</button>
+  <div class="filter-bar">
+    <span class="filter-label">Period</span>
+    <div class="filter-pills">
+      <a href="{% url 'reports' %}?sort={{ sort_by|default:'filtered_milk' }}"
+         class="pill {% if not request.GET.period and not request.GET.from_date %}active{% endif %}"
+         id="pill-all">All Time</a>
+      <button type="button" class="pill {% if request.GET.period == 'week' %}active{% endif %}"
+              id="pill-week"   onclick="setPeriod('week')">This Week</button>
+      <button type="button" class="pill {% if request.GET.period == '15days' %}active{% endif %}"
+              id="pill-15days" onclick="setPeriod('15days')">15 Days</button>
+      <button type="button" class="pill {% if request.GET.period == 'month' %}active{% endif %}"
+              id="pill-month"  onclick="setPeriod('month')">This Month</button>
+      <button type="button" class="pill {% if request.GET.period == 'custom' %}active{% endif %}"
+              id="pill-custom" onclick="toggleCustom(event)">Custom ↓</button>
+    </div>
   </div>
 
   <div class="custom-range {% if request.GET.period == 'custom' %}show{% endif %}" id="customRange">
-    <label style="font-size:13px;">From</label>
-    <input type="date" id="fromDate" value="{{ request.GET.from_date|default:'' }}" style="width:160px;" />
-    <label style="font-size:13px;">To</label>
-    <input type="date" id="toDate"   value="{{ request.GET.to_date|default:'' }}"   style="width:160px;" />
-    <button type="button" class="btn btn-primary" onclick="applyCustom()">Apply</button>
+    <div class="date-group">
+      <label>From</label>
+      <input type="date" id="fromDate" value="{{ request.GET.from_date|default:'' }}" />
+    </div>
+    <div class="date-group">
+      <label>To</label>
+      <input type="date" id="toDate" value="{{ request.GET.to_date|default:'' }}" />
+    </div>
+    <button type="button" class="btn-apply" onclick="applyCustom()">Apply Range</button>
   </div>
 </form>
 
 {% if active_period_label %}
-<div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;" class="no-print">
-  Showing: <strong>{{ active_period_label }}</strong>
-</div>
+<div class="period-label no-print">Showing: <strong>{{ active_period_label }}</strong></div>
 {% endif %}
 
 <!-- ── STAT CARDS ── -->
-<div class="report-stats">
-  <div class="report-stat">
-    <div class="report-stat-label">Total Milk</div>
-    <div class="report-stat-value">{{ total_milk|floatformat:1 }} <span style="font-size:14px;font-weight:400;color:var(--text-muted);">L</span></div>
+<div class="stat-grid">
+  <div class="stat-card" style="--accent:#10b981">
+    <div class="stat-icon">🥛</div>
+    <div class="stat-body">
+      <div class="stat-label">Total Milk</div>
+      <div class="stat-value">{{ total_milk|floatformat:1 }} <span class="stat-unit">L</span></div>
+    </div>
   </div>
-  <div class="report-stat amber">
-    <div class="report-stat-label">Revenue</div>
-    <div class="report-stat-value">Rs.{{ total_sales|floatformat:0 }}</div>
+  <div class="stat-card" style="--accent:#f59e0b">
+    <div class="stat-icon">💰</div>
+    <div class="stat-body">
+      <div class="stat-label">Revenue</div>
+      <div class="stat-value">Rs.{{ total_sales|floatformat:0 }}</div>
+    </div>
   </div>
-  <div class="report-stat blue">
-    <div class="report-stat-label">Avg Fat %</div>
-    <div class="report-stat-value">{{ avg_fat }}</div>
+  <div class="stat-card" style="--accent:#6366f1">
+    <div class="stat-icon">🧪</div>
+    <div class="stat-body">
+      <div class="stat-label">Avg Fat %</div>
+      <div class="stat-value">{{ avg_fat }}<span class="stat-unit">%</span></div>
+    </div>
   </div>
   {% if role != 'farmer' %}
-  <div class="report-stat">
-    <div class="report-stat-label">Farmers</div>
-    <div class="report-stat-value">{{ total_farmers }}</div>
+  <div class="stat-card" style="--accent:#ec4899">
+    <div class="stat-icon">👨‍🌾</div>
+    <div class="stat-body">
+      <div class="stat-label">Active Farmers</div>
+      <div class="stat-value">{{ total_farmers }}</div>
+    </div>
   </div>
   {% endif %}
 </div>
 
-<!-- ── DAILY BREAKDOWN (last 7 days) ── -->
-<div class="daily-card section-gap">
-  <div class="daily-card-header">
-    <div class="daily-card-title">📅 Last 7 Days</div>
+<!-- ── DAILY BREAKDOWN ── -->
+<section class="section-card">
+  <div class="section-header">
+    <div class="section-title">📅 Last 7 Days Breakdown</div>
   </div>
-  <div class="report-table-wrap">
-    <table>
+  <div class="table-wrap">
+    <table class="data-table">
       <thead>
         <tr>
           <th>Date</th>
-          <th style="text-align:right;">Milk (L)</th>
-          <th style="text-align:right;">Avg Fat %</th>
-          <th style="text-align:right;">Avg SNF %</th>
-          <th style="text-align:right;">Revenue</th>
+          <th class="ta-right">Milk (L)</th>
+          <th class="ta-right">Avg Fat %</th>
+          <th class="ta-right">Avg SNF %</th>
+          <th class="ta-right">Revenue</th>
         </tr>
       </thead>
       <tbody>
         {% for r in report %}
         <tr>
-          <td style="font-weight:500;">{{ r.date|date:"D, d M Y" }}</td>
-          <td style="text-align:right;">{{ r.total_milk|floatformat:1 }}</td>
-          <td style="text-align:right;">{{ r.avg_fat }}</td>
-          <td style="text-align:right;">{{ r.avg_snf }}</td>
-          <td style="text-align:right;font-weight:600;color:var(--success);">Rs.{{ r.revenue|floatformat:0 }}</td>
+          <td class="fw-600">{{ r.date|date:"D, d M Y" }}</td>
+          <td class="ta-right">{{ r.total_milk|floatformat:1 }}</td>
+          <td class="ta-right">{{ r.avg_fat }}</td>
+          <td class="ta-right">{{ r.avg_snf }}</td>
+          <td class="ta-right"><span class="amt">Rs.{{ r.revenue|floatformat:0 }}</span></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">No data available.</td></tr>
+        <tr><td colspan="5" class="empty-cell">No data available.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-</div>
+</section>
 
 <!-- ── FARMER TABLE ── -->
-<div class="card section-gap" id="printArea">
-  <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+<section class="section-card" id="printArea">
+  <div class="section-header">
     <div>
-      <div class="card-title">
+      <div class="section-title">
         {% if role == 'farmer' %}My Milk Summary{% else %}All Farmers{% endif %}
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+      <div class="section-sub">
         {% if active_period_label %}{{ active_period_label }}{% else %}All time milk &amp; revenue{% endif %}
+        {% if role != 'farmer' %} — <em>Click a row to view history</em>{% endif %}
       </div>
     </div>
 
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" class="no-print">
-
-      <!-- SEARCH -->
+    <div class="table-controls no-print">
       <div class="search-wrap">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M21 21l-4.35-4.35M17 11A6 6 0 111 11a6 6 0 0116 0z"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
-        <input type="text" id="farmerSearch" placeholder="Search name or #ID…"
-               oninput="filterTable(this.value)" />
+        <input type="text" id="farmerSearch" placeholder="Search name or #ID…" oninput="filterTable(this.value)" />
       </div>
 
       {% if role != 'farmer' %}
-      <!-- SORT BUTTONS -->
-      <span style="font-size:11px;color:var(--text-muted);">Sort by:</span>
-      <a href="?period={{ request.GET.period }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}&sort=filtered_milk"
-         class="sort-btn {% if sort_by == 'filtered_milk' or not sort_by %}active-milk{% endif %}">🥛 Milk</a>
-      <a href="?period={{ request.GET.period }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}&sort=filtered_revenue"
-         class="sort-btn {% if sort_by == 'filtered_revenue' %}active-revenue{% endif %}">💰 Revenue</a>
+      <div class="sort-group">
+        <span class="sort-label">Sort:</span>
+        <a href="?period={{ request.GET.period }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}&sort=filtered_milk"
+           class="sort-btn {% if sort_by == 'filtered_milk' or not sort_by %}active-milk{% endif %}">🥛 Milk</a>
+        <a href="?period={{ request.GET.period }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}&sort=filtered_revenue"
+           class="sort-btn {% if sort_by == 'filtered_revenue' %}active-revenue{% endif %}">💰 Revenue</a>
+      </div>
       {% endif %}
 
-      <span style="font-size:12px;color:var(--text-muted);" id="visibleCount">
-        {{ farmer_list|length }} farmer{{ farmer_list|length|pluralize }}
-      </span>
-      <button onclick="window.print()" class="btn btn-outline no-print" style="padding:6px 14px;font-size:12px;">🖨 Print</button>
+      <span class="visible-count" id="visibleCount">{{ farmer_list|length }} farmer{{ farmer_list|length|pluralize }}</span>
+      <button onclick="window.print()" class="btn-apply no-print">🖨 Print</button>
     </div>
   </div>
 
   {% if farmer_list %}
-  <div class="report-table-wrap">
-    <table id="farmerTable">
+  <div class="table-wrap">
+    <table class="data-table" id="farmerTable">
       <thead>
         <tr>
           <th>ID</th>
           <th>Name</th>
           <th>Email</th>
           <th>Phone</th>
-          <th style="text-align:right;">
+          <th class="ta-right">
             Milk (L)
-            {% if sort_by == 'filtered_milk' or not sort_by %}<span style="color:var(--primary);">▼</span>{% endif %}
+            {% if sort_by == 'filtered_milk' or not sort_by %}<span class="sort-arrow">▼</span>{% endif %}
           </th>
-          <th style="text-align:right;">
+          <th class="ta-right">
             Revenue
-            {% if sort_by == 'filtered_revenue' %}<span style="color:var(--warning);">▼</span>{% endif %}
+            {% if sort_by == 'filtered_revenue' %}<span class="sort-arrow">▼</span>{% endif %}
           </th>
         </tr>
       </thead>
       <tbody id="farmerTbody">
         {% for f in farmer_list %}
-        <tr data-name="{{ f.name|lower }}" data-id="{{ f.id }}">
+        <tr data-name="{{ f.name|lower }}" data-id="{{ f.id }}"
+            data-milk="{{ f.filtered_milk }}" data-revenue="{{ f.filtered_revenue }}">
           <td><span class="badge-id">#{{ f.id }}</span></td>
-          <td style="font-weight:500;">{{ f.name }}</td>
-          <td style="color:var(--text-muted);">{{ f.gmail|default:"—" }}</td>
-          <td style="color:var(--text-muted);">{{ f.phone|default:"—" }}</td>
-          <td style="text-align:right;font-weight:500;">{{ f.filtered_milk|floatformat:1 }}</td>
-          <td style="text-align:right;font-weight:600;color:var(--success);">Rs.{{ f.filtered_revenue|floatformat:0 }}</td>
+          <td class="fw-600">{{ f.name }}</td>
+          <td class="c-muted">{{ f.gmail|default:"—" }}</td>
+          <td class="c-muted">{{ f.phone|default:"—" }}</td>
+          <td class="ta-right fw-500">{{ f.filtered_milk|floatformat:1 }}</td>
+          <td class="ta-right"><span class="amt">Rs.{{ f.filtered_revenue|floatformat:0 }}</span></td>
         </tr>
         {% endfor %}
       </tbody>
       <tfoot>
         <tr>
           <td colspan="4">Total</td>
-          <td style="text-align:right;">{{ farmer_list_total_milk|floatformat:1 }} L</td>
-          <td style="text-align:right;color:var(--success);">Rs.{{ farmer_list_total_revenue|floatformat:0 }}</td>
+          <td class="ta-right">{{ farmer_list_total_milk|floatformat:1 }} L</td>
+          <td class="ta-right"><span class="amt">Rs.{{ farmer_list_total_revenue|floatformat:0 }}</span></td>
         </tr>
       </tfoot>
     </table>
   </div>
   {% else %}
-  <div class="empty-state"><p>No data found for the selected period.</p></div>
+  <div class="modal-empty"><p>No data found for the selected period.</p></div>
   {% endif %}
+</section>
+
+<!-- ══════════════════════════════════════════
+     FARMER HISTORY MODAL
+══════════════════════════════════════════ -->
+{% if role != 'farmer' %}
+<div id="historyOverlay" onclick="overlayClick(event)">
+  <div class="history-modal" id="historyModal">
+
+    <!-- Header -->
+    <div class="history-modal-header">
+      <div class="modal-farmer-info">
+        <div class="modal-farmer-avatar" id="modalAvatar">?</div>
+        <div>
+          <div class="modal-farmer-name" id="modalFarmerName">—</div>
+          <div class="modal-farmer-meta" id="modalFarmerMeta">—</div>
+        </div>
+      </div>
+      <div class="modal-header-actions">
+        <button onclick="printFarmerHistory()" class="btn-modal-print">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/>
+          </svg>
+          Print
+        </button>
+        <button onclick="closeHistory()" class="btn-modal-close">✕</button>
+      </div>
+    </div>
+
+    <!-- Period Tabs -->
+    <div class="history-tabs">
+      <button class="h-tab active" onclick="loadHistory('7',  this)">7 Days</button>
+      <button class="h-tab"        onclick="loadHistory('15', this)">15 Days</button>
+      <button class="h-tab"        onclick="loadHistory('30', this)">Month</button>
+      <button class="h-tab"        onclick="toggleHistoryCustom(this)">Custom</button>
+
+      <div id="historyCustomDates" class="history-custom-dates">
+        <input type="date" id="hFromDate" />
+        <span>to</span>
+        <input type="date" id="hToDate" />
+        <button onclick="applyHistoryCustom()" class="btn-apply">Apply</button>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="modal-stats">
+      <div class="modal-stat">
+        <div class="modal-stat-label">Total Milk</div>
+        <div class="modal-stat-value" id="statMilk">—</div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">Revenue</div>
+        <div class="modal-stat-value green" id="statRevenue">—</div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">Avg Fat %</div>
+        <div class="modal-stat-value" id="statFat">—</div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-label">Avg SNF %</div>
+        <div class="modal-stat-value" id="statSnf">—</div>
+      </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="history-body">
+      <div id="modalLoading" class="modal-loading">
+        <div class="spinner"></div>
+        <span>Loading records…</span>
+      </div>
+      <div id="historyEmpty" class="modal-empty" style="display:none;">No records found for this period.</div>
+      <div class="table-wrap" id="historyTableWrap" style="display:none;">
+        <table class="data-table history-table" id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th class="ta-center">Session</th>
+              <th class="ta-right">Milk (L)</th>
+              <th class="ta-right">Fat %</th>
+              <th class="ta-right">SNF %</th>
+              <th class="ta-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="historyTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </div>
+{% endif %}
+<!-- END MODAL -->
 
 {% endwith %}
 
-<script>
-  function setPeriod(p) {
-    document.getElementById('periodInput').value = p;
-    document.getElementById('fromInput').value   = '';
-    document.getElementById('toInput').value     = '';
-    document.getElementById('filterForm').submit();
-  }
-
-  function toggleCustom() {
-    document.getElementById('customRange').classList.toggle('show');
-  }
-
-  function applyCustom() {
-    var from = document.getElementById('fromDate').value;
-    var to   = document.getElementById('toDate').value;
-    if (!from || !to) { alert('Please select both dates.'); return; }
-    document.getElementById('periodInput').value = 'custom';
-    document.getElementById('fromInput').value   = from;
-    document.getElementById('toInput').value     = to;
-    document.getElementById('filterForm').submit();
-  }
-
-  function filterTable(query) {
-    const q       = query.trim().toLowerCase();
-    const rows    = document.querySelectorAll('#farmerTbody tr');
-    const countEl = document.getElementById('visibleCount');
-    let visible   = 0;
-
-    rows.forEach(row => {
-      const name  = row.dataset.name || '';
-      const id    = '#' + (row.dataset.id || '');
-      const match = !q || name.includes(q) || id.includes(q);
-      row.classList.toggle('hidden-row', !match);
-      if (match) visible++;
-    });
-
-    if (countEl) {
-      countEl.textContent = visible + (visible === 1 ? ' farmer' : ' farmers');
-    }
-  }
-</script>
+{% block extra_js %}
+<script src="{% static 'js/reports.js' %}?v=3"></script>
+{% endblock %}
 
 {% endblock %}

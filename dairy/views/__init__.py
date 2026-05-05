@@ -37,10 +37,12 @@ from .sales_views import (
 from .purchase_views import (
     purchases,
     delete_purchase,
+    purchase_detail_api,
 )
 
 from .report_views import (
     reports,
+    farmer_history_api,  # NEW
 )
 
 from .notice_views import (

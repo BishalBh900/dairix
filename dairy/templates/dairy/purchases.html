@@ -170,6 +170,9 @@
     font-size: 18px;
   }
 
+  #purchaseTable tbody tr { cursor: pointer; transition: background 0.12s; }
+  #purchaseTable tbody tr:hover { background: #f0fdf4; }
+
   @media (max-width: 600px) {
     .form-row-2 { grid-template-columns: 1fr; }
     .modal { padding: 18px; }
@@ -246,7 +249,7 @@
       </thead>
       <tbody>
         {% for p in purchases %}
-        <tr id="row-{{ p.id }}">
+        <tr id="row-{{ p.id }}" onclick="viewPurchase({{ p.id }}, event)">
           <td style="font-weight:600;color:var(--primary);">{{ p.inv_no }}</td>
           <td>{{ p.inv_date|date:"d M Y" }}</td>
           <td style="font-weight:500;">{{ p.vendor }}</td>
@@ -343,8 +346,62 @@
   </div>
 </div>
 
+<!-- ── View Purchase Modal ── -->
+<div class="modal-overlay" id="viewOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeView()">×</button>
+    <div class="modal-title" id="viewTitle">Purchase Details</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Invoice No.</div>
+        <div style="font-weight:700;color:#16a34a;font-size:15px;" id="viewInvNo">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Date</div>
+        <div id="viewDate">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Vendor</div>
+        <div style="font-weight:600;" id="viewVendor">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Notes</div>
+        <div style="color:#6b7280;" id="viewNotes">—</div>
+      </div>
+    </div>
+
+    <div class="items-table-wrap">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th class="col-desc">Description</th>
+            <th class="col-qty">Qty</th>
+            <th class="col-unit">Unit</th>
+            <th class="col-rate" style="text-align:right;">Rate (Rs.)</th>
+            <th class="col-amt">Amount (Rs.)</th>
+          </tr>
+        </thead>
+        <tbody id="viewItemsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="grand-total-row" style="margin-top:16px;">
+      Grand Total: <span id="viewTotal">Rs.0.00</span>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+      <button onclick="printPurchase()" class="btn btn-outline" style="display:flex;align-items:center;gap:6px;">
+        🖨 Print
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   let rowIdx = 0;
+
+  /* ── Add Purchase Modal ── */
 
   function addItemRow(desc='', qty=1, unit='', rate='') {
     rowIdx++;
@@ -523,6 +580,8 @@
     const rowId = p.id ? `row-${p.id}` : `row-new-${Date.now()}`;
     const row   = document.createElement('tr');
     row.id = rowId;
+    row.setAttribute('onclick', `viewPurchase(${p.id}, event)`);
+    row.style.cursor = 'pointer';
     row.innerHTML = `
       <td style="font-weight:600;color:var(--primary);">${p.inv_no}</td>
       <td>${fmtDate(p.inv_date)}</td>
@@ -565,6 +624,129 @@
         row.remove();
       }
     }
+  }
+
+  /* ── View Purchase Modal ── */
+
+  document.getElementById('viewOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeView();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeView();
+      closeModal();
+    }
+  });
+
+  function closeView() {
+    document.getElementById('viewOverlay').classList.remove('show');
+  }
+
+  async function viewPurchase(id, event) {
+    if (event && event.target.closest('button')) return;
+
+    document.getElementById('viewOverlay').classList.add('show');
+    document.getElementById('viewTitle').textContent = 'Purchase Details';
+    document.getElementById('viewInvNo').textContent  = '—';
+    document.getElementById('viewDate').textContent   = '—';
+    document.getElementById('viewVendor').textContent = '—';
+    document.getElementById('viewNotes').textContent  = '—';
+    document.getElementById('viewTotal').textContent  = 'Rs.0.00';
+    document.getElementById('viewItemsBody').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af;">Loading…</td></tr>';
+
+    try {
+      const res  = await fetch(`/purchases/${id}/detail/`);
+      const data = await res.json();
+
+      document.getElementById('viewTitle').textContent  = 'Purchase — ' + data.inv_no;
+      document.getElementById('viewInvNo').textContent  = data.inv_no;
+      document.getElementById('viewDate').textContent   = data.inv_date;
+      document.getElementById('viewVendor').textContent = data.vendor;
+      document.getElementById('viewNotes').textContent  = data.notes || '—';
+      document.getElementById('viewTotal').textContent  = 'Rs.' + parseFloat(data.amount).toFixed(2);
+
+      const tbody = document.getElementById('viewItemsBody');
+      if (!data.items.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af;">No items recorded.</td></tr>';
+      } else {
+        tbody.innerHTML = data.items.map(i => `
+          <tr>
+            <td>${i.description}</td>
+            <td>${i.quantity}</td>
+            <td style="color:#6b7280;">${i.unit || '—'}</td>
+            <td style="text-align:right;">Rs.${parseFloat(i.rate).toFixed(2)}</td>
+            <td style="text-align:right;font-weight:600;color:#111827;">Rs.${parseFloat(i.amount).toFixed(2)}</td>
+          </tr>
+        `).join('');
+      }
+    } catch(e) {
+      document.getElementById('viewItemsBody').innerHTML =
+        '<tr><td colspan="5" style="text-align:center;padding:24px;color:#ef4444;">Failed to load. Please try again.</td></tr>';
+    }
+  }
+
+  /* ── Print Purchase ── */
+
+  function printPurchase() {
+    const invNo  = document.getElementById('viewInvNo').textContent;
+    const date   = document.getElementById('viewDate').textContent;
+    const vendor = document.getElementById('viewVendor').textContent;
+    const notes  = document.getElementById('viewNotes').textContent;
+    const total  = document.getElementById('viewTotal').textContent;
+    const rows   = document.getElementById('viewItemsBody').innerHTML;
+
+    const win = window.open('', '_blank', 'width=800,height=600');
+    win.document.write(`<!DOCTYPE html>
+<html><head>
+  <meta charset="UTF-8">
+  <title>Purchase — ${invNo}</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI',sans-serif; padding:32px; color:#111; }
+    .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; border-bottom:2px solid #16a34a; padding-bottom:16px; }
+    .brand { font-size:22px; font-weight:800; color:#16a34a; }
+    .brand small { display:block; font-size:11px; color:#6b7280; font-weight:400; }
+    .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+    .meta-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#9ca3af; margin-bottom:4px; }
+    .meta-value { font-size:14px; font-weight:600; color:#111; }
+    .meta-value.green { color:#16a34a; }
+    table { width:100%; border-collapse:collapse; margin-bottom:16px; }
+    thead tr { background:#f3f4f6; }
+    th { padding:10px 12px; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#6b7280; text-align:left; border-bottom:1px solid #e5e7eb; }
+    td { padding:10px 12px; font-size:13px; border-bottom:1px solid #f3f4f6; }
+    .ta-right { text-align:right; }
+    .total-row { display:flex; justify-content:flex-end; font-size:16px; font-weight:700; padding-top:12px; }
+    .total-row span { color:#16a34a; margin-left:12px; font-size:18px; }
+    .footer { margin-top:32px; font-size:10px; color:#9ca3af; border-top:1px solid #e5e7eb; padding-top:12px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">🐄 Dairix <small>Dairy Management System</small></div>
+    <div style="font-size:18px;font-weight:700;">Purchase Invoice</div>
+  </div>
+  <div class="meta-grid">
+    <div><div class="meta-label">Invoice No.</div><div class="meta-value green">${invNo}</div></div>
+    <div><div class="meta-label">Date</div><div class="meta-value">${date}</div></div>
+    <div><div class="meta-label">Vendor</div><div class="meta-value">${vendor}</div></div>
+    <div><div class="meta-label">Notes</div><div class="meta-value" style="font-weight:400;color:#6b7280;">${notes}</div></div>
+  </div>
+  <table>
+    <thead><tr>
+      <th>Description</th><th>Qty</th><th>Unit</th>
+      <th class="ta-right">Rate (Rs.)</th><th class="ta-right">Amount (Rs.)</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="total-row">Grand Total: <span>${total}</span></div>
+  <div class="footer">Printed on ${new Date().toLocaleString()} · Dairix — Dairy Management System</div>
+</body></html>`);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 400);
   }
 </script>
 

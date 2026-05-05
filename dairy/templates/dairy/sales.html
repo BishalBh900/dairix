@@ -5,19 +5,20 @@
 {% block page_title %}Sales{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/sales.css' %}">
+<link rel="stylesheet" href="{% static 'css/sales.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
 
-{# Config block: passes chart data to sales.js without inline script tags #}
 <div id="salesConfig"
-  data-daily-labels="{{ daily_labels|escapejs }}"
-  data-daily-data="{{ daily_data|escapejs }}"
-  data-monthly-labels="{{ monthly_labels|escapejs }}"
-  data-monthly-data="{{ monthly_data|escapejs }}"
-  data-farmer-names="{{ farmer_names|escapejs }}"
-  data-farmer-revs="{{ farmer_revenues|escapejs }}"
+  data-daily-labels="{{ daily_labels }}"
+  data-daily-data="{{ daily_data }}"
+  data-monthly-labels="{{ monthly_labels }}"
+  data-monthly-data="{{ monthly_data }}"
+  data-farmer-names="{{ farmer_names }}"
+  data-farmer-revs="{{ farmer_revenues }}"
+  data-product-names="{{ product_names }}"
+  data-product-revs="{{ product_revenues }}"
   style="display:none;">
 </div>
 
@@ -39,16 +40,21 @@
     <div class="stat-sub">All time</div>
   </div>
 </div>
-
 <!-- ── Charts Row ── -->
 <div class="charts-row">
   <div class="chart-card">
     <div class="chart-title">Daily Sales — Last 7 Days</div>
     <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
   </div>
-  <div class="chart-card">
-    <div class="chart-title">Revenue by Farmer</div>
-    <div class="chart-wrap"><canvas id="farmerChart"></canvas></div>
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="chart-card" style="margin-bottom:0;">
+      <div class="chart-title">Revenue by Farmer</div>
+      <div class="chart-wrap" style="height:240px;"><canvas id="farmerChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0;">
+      <div class="chart-title">Revenue by Product</div>
+      <div class="chart-wrap" style="height:240px;"><canvas id="productChart"></canvas></div>
+    </div>
   </div>
 </div>
 
@@ -102,5 +108,5 @@
 
 {% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="{% static 'js/sales.js' %}"></script>
+<script src="{% static 'js/sales.js' %}?v=2"></script>
 {% endblock %}

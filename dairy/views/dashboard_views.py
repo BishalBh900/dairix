@@ -12,7 +12,7 @@ from ..utils import get_role
 @login_required(login_url='login')
 @admin_or_staff_required
 def dashboard(request):
-    today      = date.today()
+    today = date.today()
 
     labels, chart_data = [], []
     for i in range(6, -1, -1):
@@ -62,8 +62,8 @@ def dashboard(request):
         "avg_snf":          round(float(avg_snf), 2),
         "top_farmers":      top_farmers,
         "recent":           recent,
-        "labels":           json.dumps(labels),
-        "data":             json.dumps(chart_data),
+        "labels":           labels,
+        "data":             chart_data,
     })
 
 

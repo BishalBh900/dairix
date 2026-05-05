@@ -1,4 +1,4 @@
-.chart-wrap { position: relative; height: 220px; }
+.chart-wrap { position: relative; height: 300px; }
 
 .session-split { display: flex; gap: 1rem; margin-top: .5rem; }
 .session-pill {

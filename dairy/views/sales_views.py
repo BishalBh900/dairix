@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.db.models import Sum
+from django.db.models import Sum, F
 from datetime import date, timedelta
 import json
-
-from ..models import Farmer, Bill
+from dateutil.relativedelta import relativedelta
+from ..models import Farmer, Bill, BillItem
 from ..decorators import admin_or_staff_required
 
 
@@ -29,10 +29,12 @@ def sales(request):
 
     monthly_labels, monthly_data = [], []
     for i in range(5, -1, -1):
-        m_start = (today.replace(day=1) - timedelta(days=i * 28)).replace(day=1)
-        m_end   = (m_start.replace(day=28) + timedelta(days=4)).replace(day=1)
-        amt = bill_qs.filter(inv_date__gte=m_start, inv_date__lt=m_end).aggregate(
-            Sum('total'))['total__sum'] or 0
+        m_start = today.replace(day=1) - relativedelta(months=i)
+        m_end   = m_start + relativedelta(months=1)
+        amt = bill_qs.filter(
+            inv_date__gte=m_start,
+            inv_date__lt=m_end
+        ).aggregate(Sum('total'))['total__sum'] or 0
         monthly_labels.append(m_start.strftime('%b %Y'))
         monthly_data.append(float(amt))
 
@@ -45,15 +47,27 @@ def sales(request):
 
     recent_bills = bill_qs.select_related('farmer').order_by('-saved_at')[:10]
 
+    # ── Revenue by Product ──
+    product_revenue_raw = (
+        BillItem.objects
+        .values('desc')
+        .annotate(revenue=Sum(F('qty') * F('rate')))
+        .order_by('-revenue')[:6]
+    )
+    product_names    = json.dumps([p['desc'] for p in product_revenue_raw])
+    product_revenues = json.dumps([float(p['revenue']) for p in product_revenue_raw])
+
     return render(request, "dairy/sales.html", {
-        'today_sales':     today_sales,
-        'month_sales':     month_sales,
-        'total_sales':     total_sales,
-        'recent_bills':    recent_bills,
-        'daily_labels':    json.dumps(daily_labels),
-        'daily_data':      json.dumps(daily_data),
-        'monthly_labels':  json.dumps(monthly_labels),
-        'monthly_data':    json.dumps(monthly_data),
-        'farmer_names':    json.dumps([f['name'] for f in top_farmers]),
-        'farmer_revenues': json.dumps([f['revenue'] for f in top_farmers]),
+        'today_sales':      today_sales,
+        'month_sales':      month_sales,
+        'total_sales':      total_sales,
+        'recent_bills':     recent_bills,
+        'daily_labels':     json.dumps(daily_labels),
+        'daily_data':       json.dumps(daily_data),
+        'monthly_labels':   json.dumps(monthly_labels),
+        'monthly_data':     json.dumps(monthly_data),
+        'farmer_names':     json.dumps([f['name'] for f in top_farmers]),
+        'farmer_revenues':  json.dumps([f['revenue'] for f in top_farmers]),
+        'product_names':    product_names,
+        'product_revenues': product_revenues,
     })

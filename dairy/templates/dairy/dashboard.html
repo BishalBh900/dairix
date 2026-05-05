@@ -75,34 +75,33 @@
   </div>
 </div>
 
-<!-- ── Chart + Top Farmers ── -->
-<div class="two-col">
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Milk Collection — Last 7 Days</div>
-    </div>
-    <div class="chart-wrap">
-      <canvas id="milkChart"></canvas>
-    </div>
+<<!-- ── Chart ── -->
+<div class="card" style="margin-top:1rem;">
+  <div class="card-header">
+    <div class="card-title">Milk Collection — Last 7 Days</div>
   </div>
+  <div class="chart-wrap">
+    <canvas id="milkChart"></canvas>
+  </div>
+</div>
 
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Top Farmers</div>
-    </div>
-    <div class="top-farmers">
-      {% for f in top_farmers %}
-      <div class="farmer-row">
-        <div style="display:flex;align-items:center;">
-          <div class="farmer-rank">{{ forloop.counter }}</div>
-          {{ f.name }}
-        </div>
-        <span class="farmer-milk">{{ f.milk|floatformat:1 }} L</span>
+<!-- ── Top Farmers ── -->
+<div class="card" style="margin-top:1rem;">
+  <div class="card-header">
+    <div class="card-title">Top Farmers</div>
+  </div>
+  <div class="top-farmers">
+    {% for f in top_farmers %}
+    <div class="farmer-row">
+      <div style="display:flex;align-items:center;">
+        <div class="farmer-rank">{{ forloop.counter }}</div>
+        {{ f.name }}
       </div>
-      {% empty %}
-      <p style="font-size:13px;color:#9C8B72;padding:.5rem 0;">No data yet.</p>
-      {% endfor %}
+      <span class="farmer-milk">{{ f.milk|floatformat:1 }} L</span>
     </div>
+    {% empty %}
+    <p style="font-size:13px;color:#9C8B72;padding:.5rem 0;">No data yet.</p>
+    {% endfor %}
   </div>
 </div>
 

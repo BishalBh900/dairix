@@ -96,3 +96,26 @@ def delete_purchase(request, pk):
         purchase.delete()
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
+@login_required(login_url='login')
+@admin_or_staff_required
+def purchase_detail_api(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    items = purchase.items.all()
+    return JsonResponse({
+        'inv_no':      purchase.inv_no,
+        'inv_date':    purchase.inv_date.strftime('%d %b %Y'),
+        'vendor':      purchase.vendor,
+        'particulars': purchase.particulars,
+        'notes':       purchase.notes or '',
+        'amount':      float(purchase.amount),
+        'items': [
+            {
+                'description': i.description,
+                'quantity':    float(i.quantity),
+                'unit':        i.unit,
+                'rate':        float(i.rate),
+                'amount':      float(i.amount),
+            }
+            for i in items
+        ],
+    })
