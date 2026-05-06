@@ -121,16 +121,15 @@
   </div>
 </section>
 
-<!-- ── FARMER TABLE ── -->
+<!-- ── FARMER TABLE (admin/staff only) ── -->
+{% if role != 'farmer' %}
 <section class="section-card" id="printArea">
   <div class="section-header">
     <div>
-      <div class="section-title">
-        {% if role == 'farmer' %}My Milk Summary{% else %}All Farmers{% endif %}
-      </div>
+      <div class="section-title">All Farmers</div>
       <div class="section-sub">
         {% if active_period_label %}{{ active_period_label }}{% else %}All time milk &amp; revenue{% endif %}
-        {% if role != 'farmer' %} — <em>Click a row to view history</em>{% endif %}
+        — <em>Click a row to view history</em>
       </div>
     </div>
 
@@ -142,7 +141,6 @@
         <input type="text" id="farmerSearch" placeholder="Search name or #ID…" oninput="filterTable(this.value)" />
       </div>
 
-      {% if role != 'farmer' %}
       <div class="sort-group">
         <span class="sort-label">Sort:</span>
         <a href="?period={{ request.GET.period }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}&sort=filtered_milk"
@@ -150,7 +148,6 @@
         <a href="?period={{ request.GET.period }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}&sort=filtered_revenue"
            class="sort-btn {% if sort_by == 'filtered_revenue' %}active-revenue{% endif %}">💰 Revenue</a>
       </div>
-      {% endif %}
 
       <span class="visible-count" id="visibleCount">{{ farmer_list|length }} farmer{{ farmer_list|length|pluralize }}</span>
       <button onclick="window.print()" class="btn-apply no-print">🖨 Print</button>
@@ -202,6 +199,7 @@
   <div class="modal-empty"><p>No data found for the selected period.</p></div>
   {% endif %}
 </section>
+{% endif %}
 
 <!-- ══════════════════════════════════════════
      FARMER HISTORY MODAL
@@ -242,26 +240,6 @@
         <span>to</span>
         <input type="date" id="hToDate" />
         <button onclick="applyHistoryCustom()" class="btn-apply">Apply</button>
-      </div>
-    </div>
-
-    <!-- Summary Stats -->
-    <div class="modal-stats">
-      <div class="modal-stat">
-        <div class="modal-stat-label">Total Milk</div>
-        <div class="modal-stat-value" id="statMilk">—</div>
-      </div>
-      <div class="modal-stat">
-        <div class="modal-stat-label">Revenue</div>
-        <div class="modal-stat-value green" id="statRevenue">—</div>
-      </div>
-      <div class="modal-stat">
-        <div class="modal-stat-label">Avg Fat %</div>
-        <div class="modal-stat-value" id="statFat">—</div>
-      </div>
-      <div class="modal-stat">
-        <div class="modal-stat-label">Avg SNF %</div>
-        <div class="modal-stat-value" id="statSnf">—</div>
       </div>
     </div>
 
